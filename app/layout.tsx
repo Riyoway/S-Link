@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,26 +12,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const viewport: Viewport = {
-  themeColor: "#317EFB",
-};
-
 export const metadata: Metadata = {
   title: "S-Link",
   description:
     "実用的で利便性を重視したアシスタントWebアプリ - 学校生活を支援する統合プラットフォーム",
   manifest: "/manifest.json",
+  themeColor: "#317EFB",
   icons: {
-    icon: "/icons/icon-192.png",
-    shortcut: "/icons/icon-192.png",
+    icon: "/icons/icon-192x192.png",
+    shortcut: "/icons/icon-192x192.png",
     apple: {
-      url: "/icons/icon-192.png",
+      url: "/icons/icon-192x192.png",
       sizes: "192x192",
       type: "image/png",
     },
     other: {
       rel: "icon",
-      url: "/icons/icon-192.png",
+      url: "/icons/icon-192x192.png",
     },
   },
 };
