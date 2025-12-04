@@ -1,19 +1,18 @@
 # S-Link
 
-
+> [!NOTE]
+> PBL用Repo
 
 ## Docs
-___
-- [Next.js Default MD](docs/NEXT.md) - Next.jsの産物
+- [Next.js Default MD](docs/NEXT.md) - Next.jsの産物 (ゴミ)
 - [Requirements Definition Document](docs/RDD.md) - 要件定義書
 - [Memo](docs/Memo.md) - メモ (ロジック系メモ・実装ノート)
 - Study Zone: 
-  - [Study](docs/study/abt-nextjs.md) - Next.js学習記録 (自由に記録してください)
+  - [Next.js](docs/study/abt-nextjs.md) - Next.js学習記録 (自由に記録してください)
   - [Sample Codes](docs/study/sample-codes.md) - サンプルコード集
   - [Write MD](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) - Markdownの書き方を覚えてください
 
 ### Structure
-___
 - .github/workflows - GitHub Actionsワークフロー
 - src/ - ソースコードディレクトリ
 - public/ - 公開リソースディレクトリ
