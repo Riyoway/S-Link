@@ -1,7 +1,14 @@
 # S-Link
+いつか書きます
 
-> [!NOTE]
-> PBL用Repo
+> [!TIP]
+> アイデアはIssuesに投稿してください
+> Commit/Release/issuesなどのアクティビティは[Discord > github-log](https://ptb.discord.com/channels/1364078863386279956/1391977491899617422)で確認できます
+
+> [!IMPORTANT]
+> 1. レポジトリをぐちゃぐちゃにしないでください (AIが補助してくれた部分は理解できるように)
+> 2. Commitメッセージは極力書いてほしいです (変更内容を簡潔に記述してください)
+> 3. コードはできるだけ整理してからコミットしてください
 
 ## Docs
 - [Next.js Default MD](docs/NEXT.md) - Next.jsの産物 (ゴミ)
