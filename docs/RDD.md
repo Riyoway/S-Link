@@ -9,6 +9,8 @@
 - 課題の一覧・期限管理  
 - 教室の場所の詳細
 - お天気情報 
+
+
 - 外部アプリ連携（Discord, LINE）  
 
 - 成績点のシミュレーション
@@ -54,3 +56,5 @@
 
 
 ## 使用するAPI
+1. Google Classroom API
+2. Weather News API
