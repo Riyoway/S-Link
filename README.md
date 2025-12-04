@@ -2,8 +2,8 @@
 いつか書きます
 
 > [!TIP]
-> アイデアはIssuesに投稿してください
-> Commit/Release/issuesなどのアクティビティは[Discord > github-log](https://ptb.discord.com/channels/1364078863386279956/1391977491899617422)で確認できます
+> - アイデアはIssuesに投稿してください
+> - Commit/Release/issuesなどのアクティビティは[Discordのgithub-log](https://ptb.discord.com/channels/1364078863386279956/1391977491899617422)で確認できるようにしました
 
 > [!IMPORTANT]
 > 1. レポジトリをぐちゃぐちゃにしないでください (AIが補助してくれた部分は理解できるように)
