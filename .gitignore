@@ -49,3 +49,6 @@ public/precache-*.js
 
 # Sample and test data
 /sample/.*json
+
+# Secrets
+/secrets
