@@ -46,3 +46,7 @@ public/workbox-*.js
 public/worker-*.js
 public/fallback-*.js
 public/precache-*.js
+
+# Sample and test data
+/test/
+/sample/
