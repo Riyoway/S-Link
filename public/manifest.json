@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
-  "description": "PWA test",
+  "description": "学生の毎日をラクにする、オフライン対応アプリ",
   "icons": [
     {
       "src": "/icons/icon-192.png",
