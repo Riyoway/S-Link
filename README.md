@@ -26,6 +26,7 @@
 
 
 ## Authentication Flow
+```mermaid
 graph TD
     A[Access Web App] --> B[Login or Signup with Google Authentication]
     B --> C{Is Google account domain ktc.ac.jp?}
@@ -51,3 +52,4 @@ graph TD
     M --> P{Is Department selection available?}
     P -- Grade 1~2 --> Q[Department selection disabled]
     P -- Grade 3~5 --> R[Department selection enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
+```
