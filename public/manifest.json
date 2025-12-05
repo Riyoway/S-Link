@@ -5,6 +5,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "description": "PWA test",
   "icons": [
     {
       "src": "/icons/icon-192.png",
