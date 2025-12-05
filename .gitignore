@@ -48,5 +48,4 @@ public/fallback-*.js
 public/precache-*.js
 
 # Sample and test data
-/test/
-/sample/
+/sample/.*json
