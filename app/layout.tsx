@@ -19,17 +19,13 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   themeColor: "#317EFB",
   icons: {
-    icon: "/icons/icon-192x192.png",
-    shortcut: "/icons/icon-192x192.png",
-    apple: {
-      url: "/icons/icon-192x192.png",
-      sizes: "192x192",
-      type: "image/png",
-    },
-    other: {
-      rel: "icon",
-      url: "/icons/icon-192x192.png",
-    },
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-192.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png" },
+    ],
   },
 };
 
