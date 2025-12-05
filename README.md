@@ -16,7 +16,6 @@
 > 3. コードはできるだけ整理してからコミットしてください
 
 ## Docs
-- [Next.js Default MD](docs/NEXT.md) - Next.jsの産物 (ゴミ)
 - [Requirements Definition Document](docs/RDD.md) - 要件定義書
 - [Memo](docs/Memo.md) - メモ (ロジック系メモ・実装ノート)
 - Study Zone: 
