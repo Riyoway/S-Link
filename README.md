@@ -28,28 +28,29 @@
 ## Authentication Flow
 ```mermaid
 graph TD
-  A[Access Web App] --> B[Login or Signup with Google Authentication]
-  B --> C{Is Google account domain ktc.ac.jp?}
-  C -- No --> D[Login denied]
-  C -- Yes --> E[Proceed normally]
+    A[Access Web App] --> B[Login or Signup with Google]
+    B --> C{Is Google account domain ktc.ac.jp?}
+    C -- No --> D[Login Denied]
+    C -- Yes --> E[Proceed Normally]
+    
+    E --> F[Infer Grade from Email Name]
+    F --> G{Email Name Part?}
+    G -- g07NNN --> H[Grade 1]
+    G -- g06NNN --> I[Grade 2]
+    G -- g05NNN --> J[Grade 3]
+    G -- g04NNN --> K[Grade 4]
+    G -- Exception --> L[Grade 5]
+    
+    H --> M[Display Account Creation]
+    I --> M
+    J --> M
+    K --> M
+    L --> M
 
-  E --> F[Infer grade from email local-part]
-  F --> G{Email local-part pattern?}
-  G -- g07NNN --> H[Grade 1]
-  G -- g06NNN --> I[Grade 2]
-  G -- g05NNN --> J[Grade 3]
-  G -- g04NNN --> K[Grade 4]
-  G -- Exception --> L[Grade 5]
+    M --> N[Auto-fill Name, ReadOnly]
+    M --> O[Auto-fill Inferred Grade 1-5]
+    M --> P{Is Department Selection Available?}
+    P -- Grade 1-2 --> Q[Department Selection Disabled]
+    P -- Grade 3-5 --> R[Department Selection Enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
 
-  H --> M[Display account creation screen]
-  I --> M
-  J --> M
-  K --> M
-  L --> M
-
-  M --> N[Automatically fill Name (read-only)]
-  M --> O[Automatically fill Inferred Grade (1-5)]
-  M --> P{Is Department selection available?}
-  P -- Grade 1-2 --> Q[Department selection disabled]
-  P -- Grade 3-5 --> R[Department selection enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
 ```
