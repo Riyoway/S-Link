@@ -1,6 +1,10 @@
 # S-Link
-いつか書きます
+
 アイコンはGemini Nanobananaによって生成されたものを画像編集ソフトを用いて編集したものです
+
+**Database**: supabase
+**Framework**: Next.js
+
 
 > [!TIP]
 > - アイデアはIssuesに投稿してください
@@ -20,23 +24,30 @@
   - [Sample Codes](docs/study/sample-codes.md) - サンプルコード集
   - [Write MD](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax) - Markdownの書き方を覚えてください
 
-### Structure
-- .github/workflows - GitHub Actionsワークフロー
-- src/ - ソースコードディレクトリ
-- public/ - 公開リソースディレクトリ
-- tests/ - テストコードディレクトリ
-- package.json - パッケージ定義ファイル
-- tsconfig.json - TypeScriptコンパイラ設定ファイル
-- .vscode/ - VS Code設定ディレクトリ
-- .gitignore - Git無視ファイル
-- .dockerignore - Docker無視ファイル
-- Dockerfile - Dockerイメージ構築定義ファイル
-- docker-compose.yml - Dockerコンテナ構成定義ファイル
-- .env - 環境変数設定ファイル
-- .github/ - GitHub関連設定ディレクトリ
-- .husky/ - Gitフック設定ディレクトリ
-- .lintstagedrc - Lintステージ設定ファイル
-- .prettierrc - Prettier設定ファイル
-- .eslintrc - ESLint設定ファイル
-- .commitlintrc - CommitLint設定ファイル
-- .stylelintrc - StyleLint設定ファイル
+
+## Authentication Flow
+graph TD
+    A[Access Web App] --> B[Login or Signup with Google Authentication]
+    B --> C{Is Google account domain ktc.ac.jp?}
+    C -- No --> D[Login denied]
+    C -- Yes --> E[Proceed normally]
+    
+    E --> F[Infer grade from the name part of email address]
+    F --> G{Email name part is?}
+    G -- g07NNN --> H[Grade 1]
+    G -- g06NNN --> I[Grade 2]
+    G -- g05NNN --> J[Grade 3]
+    G -- g04NNN --> K[Grade 4]
+    G -- Exception --> L[Grade 5]
+    
+    H --> M[Display account creation screen]
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+
+    M --> N[Automatically fill in Name (read-only)]
+    M --> O[Automatically fill in Inferred Grade (1~5)]
+    M --> P{Is Department selection available?}
+    P -- Grade 1~2 --> Q[Department selection disabled]
+    P -- Grade 3~5 --> R[Department selection enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
