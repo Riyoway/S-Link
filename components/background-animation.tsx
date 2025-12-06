@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 export default function BackgroundAnimation() {
   const [isPortrait, setIsPortrait] = useState(true);
 
-  // 画面縦横を監視
   useEffect(() => {
     const handleResize = () => {
       setIsPortrait(window.innerHeight > window.innerWidth);
@@ -22,7 +21,6 @@ export default function BackgroundAnimation() {
     loop: true,
     autoplay: true,
     rendererSettings: {
-      // 縦画面なら slice で拡大して中央にフィット
       preserveAspectRatio: "xMidYMid slice",
     },
   };
@@ -31,17 +29,20 @@ export default function BackgroundAnimation() {
 
   return (
     <div
-      className="-z-10 opacity-50 pointer-events-none"
+      className="fixed inset-0 -z-10 flex items-center justify-center opacity-50 pointer-events-none"
       style={{
-        position: "fixed",
-        left: "50%",
-        top: "50%",
-        width: isPortrait ? "120vw" : "300vw",
-        height: isPortrait ? "120vh" : "300vh",
-        transform: "translate(-50%, -50%)",
+        overflow: "hidden",
       }}
     >
-      {View}
+      <div
+        style={{
+          width: isPortrait ? "150%" : "300vw",
+          height: isPortrait ? "150%" : "300vh",
+          transform: "translate(0,0)",
+        }}
+      >
+        {View}
+      </div>
     </div>
   );
 }
