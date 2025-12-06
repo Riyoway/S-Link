@@ -51,3 +51,27 @@ export async function updateProfile(data: {
   // 成功したらホームへ
   redirect("/");
 }
+
+// サーバーアクション: プロフィール取得
+export async function getProfile() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return null;
+  }
+
+  const { createClient } = require("@supabase/supabase-js");
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!
+  );
+
+  const { data } = await supabase
+    .schema("next_auth")
+    .from("users")
+    .select("grade")
+    .eq("email", session.user.email)
+    .single();
+
+  return data;
+}

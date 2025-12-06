@@ -34,7 +34,7 @@ export default function Login() {
         <CardHeader className="space-y-3">
           <CardTitle className="text-2xl font-bold">S-Linkへようこそ</CardTitle>
           <CardDescription>
-            学校のGoogleアカウントでログインして、使用を始めましょう
+            学校のGoogleアカウントでログインして、始めましょう
           </CardDescription>
         </CardHeader>
         <CardContent>

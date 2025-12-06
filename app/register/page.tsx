@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { updateProfile } from "@/app/actions/profile";
+import { updateProfile, getProfile } from "@/app/actions/profile";
 import {
   Card,
   CardContent,
@@ -60,11 +60,21 @@ export default function OnboardingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
 
   // ログインしていない場合はログインページへ
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
+    } else if (status === "authenticated") {
+      // ログイン済みならプロフィール設定済みかチェック
+      getProfile().then((data) => {
+        if (data?.grade) {
+          router.push("/");
+        } else {
+          setIsCheckingProfile(false);
+        }
+      });
     }
   }, [status, router]);
 
@@ -103,6 +113,10 @@ export default function OnboardingPage() {
       form.setValue("grade", inferredGrade);
     }
   }, [inferredGrade, form]);
+
+  if ((status as string) === "loading" || isCheckingProfile) {
+    return <Loading />;
+  }
 
   // 提出ハンドラ
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -153,10 +167,6 @@ export default function OnboardingPage() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  if (status === "loading") {
-    return <Loading />;
   }
 
   const gradeNum = parseInt(watchGrade || "5");
