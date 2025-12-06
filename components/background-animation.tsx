@@ -9,14 +9,15 @@ export default function BackgroundAnimation() {
     loop: true,
     autoplay: true,
     rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
+      // slice → meet に変更して縦画面でも全体が表示されるように
+      preserveAspectRatio: "xMidYMid meet",
     },
   };
 
   const { View } = useLottie(options);
 
   return (
-    <div className="fixed left-1/2 top-[65%] sm:top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 w-[300vw] h-[300vh] sm:w-full sm:h-full opacity-50 pointer-events-none">
+    <div className="fixed inset-0 -z-10 w-full h-full opacity-50 pointer-events-none">
       {View}
     </div>
   );
