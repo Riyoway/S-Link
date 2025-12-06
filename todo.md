@@ -7,7 +7,6 @@
 - [x] 認証テスト
 - [X] DB確認
 
-
 ### Write Policy
 - [X] Privacy Policy
 - [X] Tos
