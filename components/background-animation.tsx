@@ -5,28 +5,29 @@ import backgroundAnimation from "@/public/animations/background.json";
 import { useEffect, useState } from "react";
 
 export default function BackgroundAnimation() {
-  const options = {
-    animationData: backgroundAnimation,
-    loop: true,
-    autoplay: true,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid meet", // 縦横どちらでも全体が表示される
-    },
-  };
+  const [isPortrait, setIsPortrait] = useState(true);
 
-  const { View } = useLottie(options);
-
-  // 画面サイズを監視して中央寄せ用に調整
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
+  // 画面縦横を監視
   useEffect(() => {
     const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+      setIsPortrait(window.innerHeight > window.innerWidth);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const options = {
+    animationData: backgroundAnimation,
+    loop: true,
+    autoplay: true,
+    rendererSettings: {
+      // 縦画面なら slice で拡大して中央にフィット
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+
+  const { View } = useLottie(options);
 
   return (
     <div
@@ -35,8 +36,8 @@ export default function BackgroundAnimation() {
         position: "fixed",
         left: "50%",
         top: "50%",
-        width: windowSize.width,
-        height: windowSize.height,
+        width: isPortrait ? "120vw" : "300vw",
+        height: isPortrait ? "120vh" : "300vh",
         transform: "translate(-50%, -50%)",
       }}
     >
