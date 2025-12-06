@@ -9,5 +9,5 @@
 
 
 ### Write Policy
-- [ ] Privacy Policy
-- [ ] Tos
+- [X] Privacy Policy
+- [X] Tos
