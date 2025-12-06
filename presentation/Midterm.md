@@ -6,6 +6,7 @@
 - UI/UX: shadcn/ui (tailwindcss)
 - Auth: next-auth v5
 - PWA: @ducanh2912/next-pwa
+- Animation: lottiefiles
 
 
 役割分担
