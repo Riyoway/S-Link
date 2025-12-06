@@ -8,6 +8,9 @@ export default function BackgroundAnimation() {
     animationData: backgroundAnimation,
     loop: true,
     autoplay: true,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
   };
 
   const { View } = useLottie(options);
