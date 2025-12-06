@@ -27,28 +27,29 @@
 ## Authentication Flow
 ```mermaid
 graph TD
-    A[Access Web App] --> B[Login or Signup with Google Authentication]
+    A[Access Web App] --> B[Login or Signup with Google]
     B --> C{Is Google account domain ktc.ac.jp?}
-    C -- No --> D[Login denied]
-    C -- Yes --> E[Proceed normally]
+    C -- No --> D[Login Denied]
+    C -- Yes --> E[Proceed Normally]
     
-    E --> F[Infer grade from the name part of email address]
-    F --> G{Email name part is?}
+    E --> F[Infer Grade from Email Name]
+    F --> G{Email Name Part?}
     G -- g07NNN --> H[Grade 1]
     G -- g06NNN --> I[Grade 2]
     G -- g05NNN --> J[Grade 3]
     G -- g04NNN --> K[Grade 4]
     G -- Exception --> L[Grade 5]
     
-    H --> M[Display account creation screen]
+    H --> M[Display Account Creation]
     I --> M
     J --> M
     K --> M
     L --> M
 
-    M --> N[Automatically fill in Name (read-only)]
-    M --> O[Automatically fill in Inferred Grade (1~5)]
-    M --> P{Is Department selection available?}
-    P -- Grade 1~2 --> Q[Department selection disabled]
-    P -- Grade 3~5 --> R[Department selection enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
+    M --> N[Auto-fill Name, ReadOnly]
+    M --> O[Auto-fill Inferred Grade 1-5]
+    M --> P{Is Department Selection Available?}
+    P -- Grade 1-2 --> Q[Department Selection Disabled]
+    P -- Grade 3-5 --> R[Department Selection Enabled: Architecture/Civil, Electrical/Electronics, Mechanical, Information]
+
 ```
