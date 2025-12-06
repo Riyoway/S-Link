@@ -13,7 +13,7 @@ export default function BackgroundAnimation() {
   const { View } = useLottie(options);
 
   return (
-    <div className="fixed inset-0 -z-10 h-full w-full opacity-50">
+    <div className="fixed inset-0 -z-10 h-full w-full opacity-50 scale-[3] sm:scale-100 pointer-events-none">
       {View}
     </div>
   );
