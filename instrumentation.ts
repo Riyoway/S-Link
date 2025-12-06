@@ -57,7 +57,7 @@ export async function register() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: "S-Link Notification",
+          username: "S-Link Server Notification",
           embeds: [embed],
         }),
       });
