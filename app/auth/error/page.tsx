@@ -10,6 +10,27 @@ export default async function ErrorPage({
 }) {
   const { error } = await searchParams;
 
+  const errorMessages: { [key: string]: string } = {
+    AccessDenied:
+      "指定されたドメイン (@ktc.ac.jp) 以外のアカウントではログインできません。",
+    Configuration: "サーバーの設定エラーが発生しました。",
+    Verification: "認証トークンの有効期限が切れているか、無効です。",
+    OAuthSignin: "認証プロバイダーとの通信中にエラーが発生しました。",
+    OAuthCallback: "認証プロバイダーからの応答処理中にエラーが発生しました。",
+    OAuthCreateAccount: "ユーザーアカウントの作成中にエラーが発生しました。",
+    EmailCreateAccount: "ユーザーアカウントの作成中にエラーが発生しました。",
+    Callback: "認証コールバック中にエラーが発生しました。",
+    OAuthAccountNotLinked:
+      "このメールアドレスは既に別のアカウントで使用されています。",
+    EmailSignin: "メール送信中にエラーが発生しました。",
+    CredentialsSignin:
+      "サインインに失敗しました。認証情報を確認してください。",
+    SessionRequired: "このページにアクセスするにはサインインが必要です。",
+    Default: "ログイン中に予期せぬエラーが発生しました。",
+  };
+
+  const message = errorMessages[error || "Default"] || errorMessages["Default"];
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
       <Card className="w-full max-w-md text-center shadow-lg">
@@ -31,9 +52,7 @@ export default async function ErrorPage({
           </div>
           <CardTitle className="text-xl">ログインエラー</CardTitle>
           <CardDescription className="text-base pt-2">
-            {error === "AccessDenied"
-              ? "指定されたドメイン (@ktc.ac.jp) 以外のアカウントではログインできません。"
-              : "ログイン中にエラーが発生しました。"}
+            {message}
           </CardDescription>
         </CardHeader>
         <CardContent>
