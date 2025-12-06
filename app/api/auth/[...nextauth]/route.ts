@@ -1,11 +1,11 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, User, Session } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { SupabaseAdapter } from "@auth/supabase-adapter";
+import { SupabaseAdapter } from "@next-auth/supabase-adapter";
 
 export const authOptions: AuthOptions = {
   adapter: SupabaseAdapter({
-    url: process.env.SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    secret: process.env.SUPABASE_SECRET_KEY!,
   }),
   providers: [
     GoogleProvider({
@@ -14,16 +14,20 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // メールドメインを確認
-      const email = user.email || "";
-      if (email.endsWith("@ktc.ac.jp")) {
+    async signIn({ user }: { user: User }) {
+      if (user.email && user.email.endsWith("@ktc.ac.jp")) {
         return true;
       }
       return false;
     },
+    async session({ session, user }: { session: Session; user: User }) {
+      if (session.user) {
+        (session.user as any).id = user.id;
+      }
+      return session;
+    },
   },
-  // セッション継続、Cookie などはデフォルトで有効
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

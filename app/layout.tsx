@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   description:
     "実用的で利便性を重視したアシスタントWebアプリ - 学校生活を支援する統合プラットフォーム",
   manifest: "/manifest.json",
-  themeColor: "#317EFB",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -27,6 +26,10 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192.png" },
     ],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#317EFB",
 };
 
 export default function RootLayout({

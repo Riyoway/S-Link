@@ -1,7 +1,7 @@
 ### Design
-- [ ] icon (favicon, pwa)
+- [X] icon (favicon, pwa)
 
 ### Web APP
 - [x] PWA対応
-- [ ] 認証テスト
-- [ ] 
+- [x] 認証テスト
+- [X] DB確認
