@@ -5,6 +5,27 @@ export async function register() {
     if ((globalThis as any)._isStartupNotificationSent) return;
     (globalThis as any)._isStartupNotificationSent = true;
 
+    // File-based lock to prevent spam across process restarts
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const lockFile = path.join(process.cwd(), '.startup.lock');
+      
+      if (fs.existsSync(lockFile)) {
+        const stats = fs.statSync(lockFile);
+        const now = Date.now();
+        // Prevent sending if last sent within 60 seconds
+        if (now - stats.mtimeMs < 60000) {
+          return;
+        }
+      }
+      // Update lock file
+      fs.writeFileSync(lockFile, new Date().toISOString());
+    } catch (e) {
+      // Ignore file system errors
+      console.error('Failed to handle lock file:', e);
+    }
+
     const webhookUrl = process.env.DISCORD_WEBHOOK;
 
     const embed = {
