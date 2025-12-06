@@ -35,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import Image from "next/image";
 
 // フォームスキーマ定義
 const formSchema = z.object({
@@ -177,19 +178,33 @@ export default function OnboardingPage() {
       : false);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md border-2 border-gray-200 shadow-xl bg-white dark:bg-gray-800 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-center">
-            アカウント設定
-          </CardTitle>
-          <CardDescription className="text-center">
-            S-Linkへようこそ。初期設定を完了してください。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-slate-50 to-blue-50 px-4 py-12 dark:from-slate-950 dark:via-gray-900 dark:to-slate-900 sm:px-6 lg:px-8 transition-colors duration-500">
+      <div className="w-full max-w-md animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 fill-mode-both">
+        <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-md dark:bg-gray-800/60 ring-1 ring-gray-200/50 dark:ring-gray-700/50">
+          <CardHeader className="space-y-2 pb-6">
+            <div className="flex justify-center pb-4">
+              <div className="relative h-24 w-24 overflow-hidden rounded-3xl shadow-lg ring-4 ring-white dark:ring-gray-800 transition-transform hover:scale-105 duration-300">
+                <Image
+                  src="/icons/logo.png"
+                  alt="S-Link Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+            </div>
+            <div className="space-y-1 text-center">
+              <CardTitle className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-blue-400">
+                アカウント設定
+              </CardTitle>
+              <CardDescription className="text-base text-gray-500 dark:text-gray-400 font-medium">
+                S-Linkへようこそ。<br />初期設定を完了してください。
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* 名前 */}
               <FormItem>
                 <FormLabel>名前</FormLabel>
@@ -413,6 +428,7 @@ export default function OnboardingPage() {
           </Form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
