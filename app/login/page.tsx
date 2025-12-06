@@ -28,8 +28,8 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
-      <Card className="w-full max-w-md text-center shadow-lg">
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Card className="w-full max-w-md text-center shadow-lg bg-white/90 backdrop-blur-md dark:bg-gray-900/90">
         <CardHeader className="space-y-3">
           <CardTitle className="text-2xl font-bold">S-Linkへようこそ</CardTitle>
           <CardDescription>

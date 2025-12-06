@@ -32,8 +32,8 @@ export default async function ErrorPage({
   const message = errorMessages[error || "Default"] || errorMessages["Default"];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-      <Card className="w-full max-w-md text-center shadow-lg">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <Card className="w-full max-w-md text-center shadow-lg bg-white/90 backdrop-blur-md dark:bg-gray-900/90">
         <CardHeader>
           <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
             <svg

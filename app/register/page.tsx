@@ -177,7 +177,7 @@ export default function OnboardingPage() {
       : false);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-slate-50 to-blue-50 px-4 py-12 dark:from-slate-950 dark:via-gray-900 dark:to-slate-900 sm:px-6 lg:px-8 transition-colors duration-500">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8 transition-colors duration-500">
       <div className="w-full max-w-md animate-in fade-in zoom-in-95 slide-in-from-bottom-8 duration-700 fill-mode-both">
         <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-md dark:bg-gray-800/60 ring-1 ring-gray-200/50 dark:ring-gray-700/50">
           <CardHeader className="space-y-2 pb-6">
