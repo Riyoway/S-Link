@@ -334,7 +334,7 @@ export default function OnboardingPage() {
                             <SelectItem value="E">電気電子 (E)</SelectItem>
                             <SelectItem value="M">機械システム (M)</SelectItem>
                             <SelectItem value="CA">
-                              都市環境工学科 (CA)
+                              都市環境 (CA)
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -424,7 +424,7 @@ export default function OnboardingPage() {
                             >
                               利用規約
                             </Link>
-                            に同意する
+                            に同意しまま
                           </FormLabel>
                         </div>
                       </FormItem>
@@ -450,7 +450,7 @@ export default function OnboardingPage() {
                             >
                               プライバシーポリシー
                             </Link>
-                            に同意する
+                            に同意します
                           </FormLabel>
                         </div>
                       </FormItem>
