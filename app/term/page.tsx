@@ -12,7 +12,7 @@ export default function TermsOfService() {
               利用規約
             </CardTitle>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-2">
-              最終更新日：2025年
+              最終更新日：2025年12月7日
             </p>
           </CardHeader>
           <CardContent className="prose prose-slate dark:prose-invert max-w-none space-y-8 px-6 sm:px-10 pb-10">

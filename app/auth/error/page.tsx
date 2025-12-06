@@ -12,7 +12,7 @@ export default async function ErrorPage({
 
   const errorMessages: { [key: string]: string } = {
     AccessDenied:
-      "指定されたドメイン (@ktc.ac.jp) 以外のアカウントではログインできません。",
+      "学校発行のGoogleアカウントを使用して再度お試しください。",
     Configuration: "サーバーの設定エラーが発生しました。",
     Verification: "認証トークンの有効期限が切れているか、無効です。",
     OAuthSignin: "認証プロバイダーとの通信中にエラーが発生しました。",
@@ -55,11 +55,6 @@ export default async function ErrorPage({
             {message}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            学校発行のGoogleアカウントを使用して再度お試しください。
-          </p>
-        </CardContent>
         <CardFooter className="justify-center">
           <Button asChild>
             <Link href="/login">ログイン画面に戻る</Link>
