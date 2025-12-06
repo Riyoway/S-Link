@@ -6,7 +6,7 @@ export default function TermsOfService() {
   return (
     <div className="min-h-screen px-4 py-12 transition-colors duration-500">
       <div className="container mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-md dark:bg-gray-800/60 ring-1 ring-gray-200/50 dark:ring-gray-700/50">
+        <Card className="border-0 shadow-2xl bg-white dark:bg-gray-900 ring-1 ring-gray-200/50 dark:ring-gray-700/50">
           <CardHeader className="pb-8 text-center">
             <CardTitle className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-blue-500 dark:from-indigo-400 dark:to-blue-400">
               利用規約
