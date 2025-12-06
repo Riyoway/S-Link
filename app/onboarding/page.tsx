@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -238,11 +237,11 @@ export default function OnboardingPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="1">1年</SelectItem>
-                          <SelectItem value="2">2年</SelectItem>
-                          <SelectItem value="3">3年</SelectItem>
-                          <SelectItem value="4">4年</SelectItem>
-                          <SelectItem value="5">5年</SelectItem>
+                          {["1", "2", "3", "4", "5"].map((grade) => (
+                            <SelectItem key={grade} value={grade}>
+                              {grade}年
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormDescription className="text-xs">
@@ -271,11 +270,11 @@ export default function OnboardingPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="1">1組</SelectItem>
-                            <SelectItem value="2">2組</SelectItem>
-                            <SelectItem value="3">3組</SelectItem>
-                            <SelectItem value="4">4組</SelectItem>
-                            <SelectItem value="5">5組</SelectItem>
+                            {[1, 2, 3, 4, 5].map((cls) => (
+                              <SelectItem key={cls} value={cls.toString()}>
+                                {cls}組
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormItem className="mt-2">
