@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import Image from "next/image";
+import Loading from "../loading";
 
 // フォームスキーマ定義
 const formSchema = z.object({
@@ -119,15 +120,15 @@ export default function OnboardingPage() {
         // 3-5年生
         if (values.highGradeCourse === "I") {
           finalClass = "I";
-          finalCourse = "機械システム工学科";
+          finalCourse = "制御情報";
         } else if (values.highGradeCourse === "E") {
           finalClass = "E";
-          finalCourse = "電気電子工学科";
+          finalCourse = "電気電子";
         } else if (values.highGradeCourse === "M") {
           finalClass = "M";
-          finalCourse = "情報システム工学科"; 
+          finalCourse = "機械システム";
         } else if (values.highGradeCourse === "CA") {
-          finalCourse = "都市環境工学科";
+          finalCourse = "都市環境";
           if (values.caDepartment === "C") {
             finalClass = "C";
             finalDepartment = "土木";
@@ -153,11 +154,7 @@ export default function OnboardingPage() {
   }
 
   if (status === "loading") {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <Loading />;
   }
 
   const gradeNum = parseInt(watchGrade || "5");
@@ -198,236 +195,239 @@ export default function OnboardingPage() {
                 アカウント設定
               </CardTitle>
               <CardDescription className="text-base text-gray-500 dark:text-gray-400 font-medium">
-                S-Linkへようこそ。<br />初期設定を完了してください。
+                S-Linkへようこそ。
+                <br />
+                初期設定を完了してください。
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* 名前 */}
-              <FormItem>
-                <FormLabel>名前</FormLabel>
-                <FormControl>
-                  <Input
-                    value={session?.user?.name || ""}
-                    disabled
-                    readOnly
-                    className="bg-gray-50 dark:bg-gray-900"
-                  />
-                </FormControl>
-              </FormItem>
-
-              {/* 学年 */}
-              <FormField
-                control={form.control}
-                name="grade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>学年</FormLabel>
-                    <Select
-                      key={field.value || inferredGrade}
-                      onValueChange={field.onChange}
-                      value={field.value || inferredGrade}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white dark:bg-gray-950">
-                          <SelectValue placeholder="学年を選択" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="1">1年</SelectItem>
-                        <SelectItem value="2">2年</SelectItem>
-                        <SelectItem value="3">3年</SelectItem>
-                        <SelectItem value="4">4年</SelectItem>
-                        <SelectItem value="5">5年</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      メールアドレスから推定されました
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* 1-2年生用 */}
-              {isLowGrade && (
-                <FormField
-                  control={form.control}
-                  name="lowGradeClass"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>クラス</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="クラスを選択" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">1組</SelectItem>
-                          <SelectItem value="2">2組</SelectItem>
-                          <SelectItem value="3">3組</SelectItem>
-                          <SelectItem value="4">4組</SelectItem>
-                          <SelectItem value="5">5組</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormItem className="mt-2">
-                        <FormLabel className="text-xs text-gray-500">
-                          コース
-                        </FormLabel>
-                        <Input
-                          value="共通教育科"
-                          disabled
-                          readOnly
-                          className="bg-gray-50"
-                        />
-                      </FormItem>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* 3-5年生用 */}
-              {isHighGrade && (
-                <FormField
-                  control={form.control}
-                  name="highGradeCourse"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>コース</FormLabel>
-                      <Select
-                        onValueChange={(val) => {
-                          field.onChange(val);
-                          if (val !== "CA") {
-                            form.setValue("caDepartment", undefined);
-                          }
-                        }}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="コースを選択" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="I">
-                            機械システム工学科 (I)
-                          </SelectItem>
-                          <SelectItem value="E">電気電子工学科 (E)</SelectItem>
-                          <SelectItem value="M">
-                            制御情報システム工学科 (M)
-                          </SelectItem>
-                          <SelectItem value="CA">
-                            都市環境工学科 (CA)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              {/* CA用 */}
-              {isHighGrade && watchHighGradeCourse === "CA" && (
-                <FormField
-                  control={form.control}
-                  name="caDepartment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>学科 (都市環境)</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="学科を選択" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="C">土木 (C)</SelectItem>
-                          <SelectItem value="A">建築 (A)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <div className="space-y-4 pt-4 border-t">
-                <FormField
-                  control={form.control}
-                  name="terms"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="cursor-pointer">
-                          <Link
-                            href="/term"
-                            target="_blank"
-                            className="text-primary hover:underline font-bold"
-                          >
-                            利用規約
-                          </Link>
-                          に同意する
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="privacy"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="cursor-pointer">
-                          <Link
-                            href="/privacy"
-                            target="_blank"
-                            className="text-primary hover:underline font-bold"
-                          >
-                            プライバシーポリシー
-                          </Link>
-                          に同意する
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full font-bold py-6"
-                disabled={!isValid || isLoading}
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
               >
-                {isLoading ? "作成中..." : "アカウントを作成"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+                {/* 名前 */}
+                <FormItem>
+                  <FormLabel className="text-base">名前</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={session?.user?.name || ""}
+                      disabled
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-900"
+                    />
+                  </FormControl>
+                </FormItem>
+
+                {/* 学年 */}
+                <FormField
+                  control={form.control}
+                  name="grade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">学年</FormLabel>
+                      <Select
+                        key={field.value || inferredGrade}
+                        onValueChange={field.onChange}
+                        value={field.value || inferredGrade}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white dark:bg-gray-950">
+                            <SelectValue placeholder="学年を選択" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">1年</SelectItem>
+                          <SelectItem value="2">2年</SelectItem>
+                          <SelectItem value="3">3年</SelectItem>
+                          <SelectItem value="4">4年</SelectItem>
+                          <SelectItem value="5">5年</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription className="text-xs">
+                        メールアドレスから推定されました
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* 1-2年生用 */}
+                {isLowGrade && (
+                  <FormField
+                    control={form.control}
+                    name="lowGradeClass"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">クラス</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="select-none">
+                              <SelectValue placeholder="クラスを選択" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1組</SelectItem>
+                            <SelectItem value="2">2組</SelectItem>
+                            <SelectItem value="3">3組</SelectItem>
+                            <SelectItem value="4">4組</SelectItem>
+                            <SelectItem value="5">5組</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormItem className="mt-2">
+                          <FormLabel className="text-base text-gray-500">
+                            コース
+                          </FormLabel>
+                          <Input
+                            value="共通教育科"
+                            disabled
+                            readOnly
+                            className="bg-gray-50"
+                          />
+                        </FormItem>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* 3-5年生用 */}
+                {isHighGrade && (
+                  <FormField
+                    control={form.control}
+                    name="highGradeCourse"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">コース</FormLabel>
+                        <Select
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            if (val !== "CA") {
+                              form.setValue("caDepartment", undefined);
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="select-none">
+                              <SelectValue placeholder="コースを選択" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="I">制御情報 (I)</SelectItem>
+                            <SelectItem value="E">電気電子 (E)</SelectItem>
+                            <SelectItem value="M">機械システム (M)</SelectItem>
+                            <SelectItem value="CA">
+                              都市環境工学科 (CA)
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* CA用 */}
+                {isHighGrade && watchHighGradeCourse === "CA" && (
+                  <FormField
+                    control={form.control}
+                    name="caDepartment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base">
+                          学科 (都市環境)
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="select-none">
+                              <SelectValue placeholder="学科を選択" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="C">土木 (C)</SelectItem>
+                            <SelectItem value="A">建築 (A)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <div className="space-y-4 pt-4 border-t">
+                  <FormField
+                    control={form.control}
+                    name="terms"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer">
+                            <Link
+                              href="/term"
+                              target="_blank"
+                              className="text-primary hover:underline font-bold"
+                            >
+                              利用規約
+                            </Link>
+                            に同意する
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="privacy"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer">
+                            <Link
+                              href="/privacy"
+                              target="_blank"
+                              className="text-primary hover:underline font-bold"
+                            >
+                              プライバシーポリシー
+                            </Link>
+                            に同意する
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full font-bold py-6"
+                  disabled={!isValid || isLoading}
+                >
+                  {isLoading ? "作成中..." : "アカウントを作成"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
