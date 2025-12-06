@@ -3,6 +3,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -39,8 +40,15 @@ export default function Login() {
         <CardContent>
           <Button
             onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="w-full py-6 text-lg"
+            className="w-full py-6 text-lg flex items-center justify-center gap-3"
           >
+            <Image
+              src="/assets/service/google.svg"
+              alt="Google"
+              width={24}
+              height={24}
+              priority
+            />
             Google でログイン
           </Button>
         </CardContent>
