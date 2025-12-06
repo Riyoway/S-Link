@@ -1,11 +1,15 @@
 
 export async function register() {
-  if (process.env.NEXT_ENV === 'server' && process.env.DISCORD_WEBHOOK) {
+  if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.NEXT_ENV === 'server' && process.env.DISCORD_WEBHOOK) {
+    // Prevent multiple executions (e.g. during hot reload or multiple worker starts)
+    if ((globalThis as any)._isStartupNotificationSent) return;
+    (globalThis as any)._isStartupNotificationSent = true;
+
     const webhookUrl = process.env.DISCORD_WEBHOOK;
 
     const embed = {
-      title: "🚀 Server Status",
-      description: "The server has successfully started and is now online.",
+      title: "<a:Cracker:1181459766103527485> Server Status",
+      description: "The server has been successfully updated and deployed.",
       color: 5763719, // Green
       fields: [
         {
