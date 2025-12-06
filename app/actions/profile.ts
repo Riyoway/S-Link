@@ -11,6 +11,7 @@ export async function updateProfile(data: {
   class?: string;
   course?: string;
   department?: string;
+  commuteMethod?: number;
 }) {
   const session = await getServerSession(authOptions);
 
@@ -38,6 +39,7 @@ export async function updateProfile(data: {
       class: data.class || null,
       course: data.course || null,
       department: data.department || null,
+      commute_method: data.commuteMethod || null,
     })
     .eq("email", session.user.email);
 

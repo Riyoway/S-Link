@@ -53,6 +53,7 @@ const formSchema = z.object({
   privacy: z.boolean().refine((val) => val === true, {
     message: "プライバシーポリシーへの同意が必要です",
   }),
+  commuteMethod: z.string().min(1, "通学手段を選択してください"),
 });
 
 export default function OnboardingPage() {
@@ -94,6 +95,7 @@ export default function OnboardingPage() {
   const watchHighGradeCourse = form.watch("highGradeCourse");
   const watchTerms = form.watch("terms");
   const watchPrivacy = form.watch("privacy");
+  const watchCommuteMethod = form.watch("commuteMethod");
 
   // 初期値セット (inferredGradeが変わったらセット)
   useEffect(() => {
@@ -143,6 +145,7 @@ export default function OnboardingPage() {
         class: finalClass,
         course: finalCourse,
         department: finalDepartment,
+        commuteMethod: parseInt(values.commuteMethod),
       });
 
       router.push("/");
@@ -360,6 +363,35 @@ export default function OnboardingPage() {
                     )}
                   />
                 )}
+
+
+
+                {/* 通学手段 */}
+                <FormField
+                  control={form.control}
+                  name="commuteMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-base">通学手段</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white dark:bg-gray-950">
+                            <SelectValue placeholder="通学手段を選択" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">自転車</SelectItem>
+                          <SelectItem value="2">電車</SelectItem>
+                          <SelectItem value="3">百合ヶ丘寮</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="space-y-4 pt-4 border-t">
                   <FormField

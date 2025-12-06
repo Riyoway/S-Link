@@ -1,5 +1,5 @@
 ### Design
-- [X] icon (favicon, pwa)
+- [X] icon
 
 ### Web APP
 - [X] タグ生成

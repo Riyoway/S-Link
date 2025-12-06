@@ -29,7 +29,7 @@ export default async function Home() {
 
   // 3. プロフィール未設定（gradeがない）ならオンボーディングへ
   if (!userProfile?.grade) {
-    redirect("/onboarding");
+    redirect("/register");
   }
 
   // 4. 設定済みならWelcome画面

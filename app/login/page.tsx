@@ -31,9 +31,9 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
       <Card className="w-full max-w-md text-center shadow-lg">
         <CardHeader className="space-y-3">
-          <CardTitle className="text-2xl font-bold">S-Link ログイン</CardTitle>
+          <CardTitle className="text-2xl font-bold">S-Linkへようこそ</CardTitle>
           <CardDescription>
-            学校のGoogleアカウント (@ktc.ac.jp) でログインしてください
+            学校のGoogleアカウントでログインして、使用を始めましょう
           </CardDescription>
         </CardHeader>
         <CardContent>
