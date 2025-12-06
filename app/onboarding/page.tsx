@@ -255,7 +255,7 @@ export default function OnboardingPage() {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          <Link href="/sample/policy/Terms of Service.md" target="_blank" className="text-primary hover:underline">
+                          <Link href="/term" target="_blank" className="text-primary hover:underline">
                             利用規約
                           </Link>
                           に同意する
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          <Link href="/sample/policy/Privacy Policy.md" target="_blank" className="text-primary hover:underline">
+                          <Link href="/privacy" target="_blank" className="text-primary hover:underline">
                             プライバシーポリシー
                           </Link>
                           に同意する
