@@ -227,7 +227,7 @@ export default function OnboardingPage() {
                       value={session?.user?.name || ""}
                       disabled
                       readOnly
-                      className="bg-gray-50 dark:bg-gray-900"
+                      className="bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                     />
                   </FormControl>
                 </FormItem>
@@ -278,7 +278,7 @@ export default function OnboardingPage() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="select-none">
+                            <SelectTrigger className="bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 select-none">
                               <SelectValue placeholder="クラスを選択" />
                             </SelectTrigger>
                           </FormControl>
@@ -298,7 +298,7 @@ export default function OnboardingPage() {
                             value="共通教育科"
                             disabled
                             readOnly
-                            className="bg-gray-50"
+                            className="bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700"
                           />
                         </FormItem>
                         <FormMessage />
@@ -325,7 +325,7 @@ export default function OnboardingPage() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="select-none">
+                            <SelectTrigger className="bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 select-none">
                               <SelectValue placeholder="コースを選択" />
                             </SelectTrigger>
                           </FormControl>
@@ -359,7 +359,7 @@ export default function OnboardingPage() {
                           value={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger className="select-none">
+                            <SelectTrigger className="bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700 select-none">
                               <SelectValue placeholder="学科を選択" />
                             </SelectTrigger>
                           </FormControl>
