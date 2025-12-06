@@ -71,11 +71,4 @@ https://vercel.com/legal/privacy-policy
 
 外部ライブラリ（Next.js、Supabase、NextAuth 等）は、それぞれのライセンスに従って使用しています。
 
----
 
-必要であれば、
-
-* 利用規約（Terms of Service）
-* 開発者ページ
-* `/privacy` `/copyright` 用 Next.js ページ
-  も作成できます。
