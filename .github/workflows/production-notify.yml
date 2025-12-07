@@ -1,66 +1,183 @@
-name: "Vercel Production - Card Notify (No Chart)"
+name: "Vercel Production - Card Notify"
 
 on: deployment_status
 
 env:
-  # アイコンURLを直接変数として定義 (Discord通知ステップで使用)
-  SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1441732215259136141.webp?size=32&animated=true"
-  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1441732212771917824.webp?size=32&animated=true"
+  LOOKBACK: 20
+  SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1089914717150122044.webp?size=32&animated=false"
+  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1089914757300768828.webp?size=32&animated=false" 
+  CHART_HOST: "https://quickchart.io/chart/create" 
 
 jobs:
   notify:
-    # Environmentが 'Production' かつ、状態が 'success' または 'failure' の時のみ実行
     if: github.event.deployment.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
     runs-on: ubuntu-latest
 
     permissions:
-      deployments: read # 統計情報収集のために必要だったが、今回は不要。念のため残す。
+      deployments: read
       contents: read
       statuses: read
 
     steps:
-      # 【変更】統計情報収集ステップを簡素化し、必須情報のみを抽出する
-      - name: Extract Deployment Info
-        id: info
+      - name: Install dependencies (jq, python3)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq python3
+
+      - name: Build stats and chart (Using QuickChart Short URL API)
+        id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           
-          DEP_ID=${{ github.event.deployment.id }}
+          LOOKBACK="${LOOKBACK}"
+          REPO="${REPO}"
+          CHART_API_HOST="${CHART_HOST}"
           
-          # 現在のデプロイステータスから日時を取得
-          DEPLOY_CREATED=${{ github.event.deployment.created_at }}
-          DEPLOY_UPDATED=${{ github.event.deployment_status.updated_at }}
-          
-          # デプロイ時間を計算 (秒)
-          created_s=$(date -d "$DEPLOY_CREATED" +%s || echo 0)
-          updated_s=$(date -d "$DEPLOY_UPDATED" +%s || echo 0)
-          duration=$((updated_s - created_s))
-          
-          # ステータス情報として、今回のデプロイ時間のみを保持
-          echo "avg=$duration" >> $GITHUB_OUTPUT 
-          # 成功率などは計算しないため、固定値を設定（または削除）
-          echo "rate=N/A" >> $GITHUB_OUTPUT
-          echo "total=1" >> $GITHUB_OUTPUT
-          echo "success=N/A" >> $GITHUB_OUTPUT
-          echo "failure=N/A" >> $GITHUB_OUTPUT
+          # リポジトリオーナーのアイコンURLを取得
+          REPO_ICON_URL="${{ github.event.repository.owner.avatar_url }}"
 
+          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
+          
+          # APIリクエスト (Deploymentsの取得)
+          deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
 
-      - name: Send Discord notification
+          json_type=$(echo "$deps_json" | jq -r type)
+
+          if [ "$json_type" != "array" ]; then
+            echo "::error::GitHub API returned an error object instead of an array."
+            echo "Response content: $deps_json"
+            exit 1
+          fi
+
+          total=$(echo "$deps_json" | jq 'length')
+          successes=0
+          failures=0
+          durations=()
+          labels=()
+          values=()
+          colors=()
+
+          if [ "$total" -gt 0 ]; then
+            for i in $(seq 0 $(($total - 1))); do
+              dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
+              dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
+              dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
+
+              st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
+
+              st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
+              st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
+
+              short_sha=$(echo "$dep_sha" | cut -c1-7)
+              labels+=("$short_sha")
+
+              if [ "$st_state" = "success" ]; then
+                successes=$((successes+1))
+                values+=("1")
+                colors+=("#2ecc71")
+              else
+                failures=$((failures+1))
+                values+=("0")
+                colors+=("#e74c3c")
+              fi
+
+              if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
+                created_s=$(date -d "$dep_created" +%s || echo 0)
+                updated_s=$(date -d "$st_updated" +%s || echo 0)
+                durations+=($((updated_s - created_s)))
+              else
+                durations+=(0)
+              fi
+            done
+          fi
+
+          if [ "$total" -gt 0 ]; then
+            sum=0
+            for d in "${durations[@]}"; do sum=$((sum + d)); done
+            avg=$((sum / total))
+            rate=$(awk "BEGIN { printf \"%.1f\", (${successes}/${total}) * 100 }")
+          else
+            avg=0
+            rate="0.0"
+          fi
+          
+          labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
+          values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
+          colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
+
+          # QuickChart設定のJSONを構築
+          chart_cfg_json=$(jq -n \
+            --argjson labels "$labels_json" \
+            --argjson data "$values_json" \
+            --argjson colors "$colors_json" \
+            '{
+              chart: {
+                type: "bar",
+                data: { labels: $labels, datasets: [{ data: $data, backgroundColor: $colors }] },
+                options: { 
+                  legend: { display: false }, 
+                  scales: { 
+                    yAxes: [{ 
+                      ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value){return value==1?\"Success\":\"Failure\"}" },
+                      scaleLabel: { display: true, labelString: "Status" }
+                    }],
+                    xAxes: [{ scaleLabel: { display: true, labelString: "Commit SHA" } }]
+                  }
+                }
+              }
+            }'
+          )
+          
+          # QuickChartの短縮URL APIにJSONをPOST
+          chart_response=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "$chart_cfg_json" \
+            "$CHART_API_HOST")
+
+          chart_url=$(echo "$chart_response" | jq -r '.url // empty')
+          
+          if [ -z "$chart_url" ]; then
+              echo "::warning::Failed to get short chart URL. Response: $chart_response"
+              chart_url="" # URLが取得できない場合は空文字列にする (imageフィールド自体を省略するため)
+          else
+              echo "Short Chart URL obtained: $chart_url"
+          fi
+
+          # 結果をGitHub Actionsの出力にセット
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "success=$successes" >> $GITHUB_OUTPUT
+          echo "failure=$failures" >> $GITHUB_OUTPUT
+          echo "avg=$avg" >> $GITHUB_OUTPUT
+          echo "rate=$rate" >> $GITHUB_OUTPUT
+          echo "chart=$chart_url" >> $GITHUB_OUTPUT
+          echo "repo_icon_url=$REPO_ICON_URL" >> $GITHUB_OUTPUT # リポジトリアイコンの出力
+
+      - name: Send Discord notification (with debug 🐛)
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # GitHub Actionsから取得可能な全ての関連データをENVに設定
           DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
           DEPLOY_COMMIT: ${{ github.event.deployment.sha }}
           DEPLOY_BY: ${{ github.event.deployment.creator.login }}
           DEPLOY_TIME: ${{ github.event.deployment_status.updated_at }}
-          REPO: ${{ github.repository }}
-          # 【変更】チャート関連の変数は削除し、今回の情報のみを使用
-          AVG: ${{ steps.info.outputs.avg }}
-          TOTAL: ${{ steps.info.outputs.total }}
-          RATE: ${{ steps.info.outputs.rate }}
+          ENV_NAME: ${{ github.event.deployment.environment }}
+          REF_TYPE: ${{ github.event.deployment.ref }}
+          REPO_URL: ${{ github.event.repository.html_url }}
           
+          REPO: ${{ github.repository }}
+          TOTAL: ${{ steps.stats.outputs.total }}
+          SUCCESS: ${{ steps.stats.outputs.success }}
+          FAILURE: ${{ steps.stats.outputs.failure }}
+          AVG: ${{ steps.stats.outputs.avg }}
+          RATE: ${{ steps.stats.outputs.rate }}
+          CHART: ${{ steps.stats.outputs.chart }}
+          REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }} # 新しいリポジトリアイコン
+
         run: |
           set -euo pipefail
           
@@ -72,17 +189,21 @@ jobs:
           if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
             COLOR=5763719
             ICON="${SUCCESS_ICON}"
-            TITLE="✅ Production Deployed"
-            STATUS="🟢 Success"
+            TITLE=":rocket: **${ENV_NAME} Deployment Success**"
+            STATUS="🟢 **Success**"
           else
             COLOR=15158332
             ICON="${FAILURE_ICON}"
-            TITLE="❌ Deployment Failed"
-            STATUS="🔴 Failed"
+            TITLE=":fire: **${ENV_NAME} Deployment Failed**"
+            STATUS="🔴 **Failed**"
           fi
 
-          DETAILS="[Details]($DEPLOY_URL)"
-
+          DETAILS="[View Details]($DEPLOY_URL)"
+          
+          # 環境変数として設定されていないが、GitHub Actionsで取得可能な関連データ
+          COMMIT_URL="${REPO_URL}/commit/${DEPLOY_COMMIT}"
+          
+          # JSONペイロードの生成
           payload=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
@@ -91,32 +212,47 @@ jobs:
             --arg by "$DEPLOY_BY" \
             --arg time "$DEPLOY_TIME" \
             --arg details "$DETAILS" \
+            --arg chart "$CHART" \
             --arg icon "$ICON" \
             --argjson color "$COLOR" \
+            --arg total "$TOTAL" \
+            --arg success "$SUCCESS" \
+            --arg failure "$FAILURE" \
             --arg avg "$AVG" \
             --arg rate "$RATE" \
-            --arg total "$TOTAL" \
-            --arg deploy_url "$DEPLOY_URL" \
+            --arg deploy_embed_url "$DEPLOY_URL" \
+            --arg commit_url "$COMMIT_URL" \
+            --arg ref_type "$REF_TYPE" \
+            --arg repo_icon "$REPO_ICON" \
+            --arg repo_url "$REPO_URL" \
             '{
               username: "Vercel Notify",
-              avatar_url: $icon,
+              avatar_url: $icon, # 通知ユーザーアイコン (ステータスアイコン)
               embeds: [
                 {
                   title: $title,
                   description: $status,
-                  # 【修正済】正しいURLをセット
-                  url: $deploy_url, 
+                  url: $deploy_embed_url, 
                   color: $color,
-                  author: { name: $repo, icon_url: $icon },
+                  author: { name: $repo, icon_url: $repo_icon, url: $repo_url }, # リポジトリオーナーアイコン
                   fields: [
-                    { name: "Commit", value: ("`" + ($commit | .[:7]) + "`"), inline: true },
-                    { name: "By", value: $by, inline: true },
-                    # 【変更】成功率を今回の情報のみに変更（または削除）
-                    { name: "Duration (s)", value: $avg, inline: true }, 
-                    { name: "Details", value: $details, inline: false }
+                    # 第1列: 識別情報
+                    { name: "Environment", value: "${{ env.ENV_NAME }}", inline: true },
+                    { name: "Deployer", value: $by, inline: true },
+                    { name: "Ref/Branch", value: $ref_type, inline: true },
+                    
+                    # 第2列: 統計情報
+                    { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
+                    { name: "Avg Build Time (s)", value: $avg, inline: true },
+                    { name: "Duration Lookback", value: "${{ env.LOOKBACK }} deployments", inline: true },
+
+                    # 第3列: 詳細リンク
+                    { name: "Commit Hash", value: ("[`" + ($commit | .[:7]) + "`]" + "(" + $commit_url + ")"), inline: true },
+                    { name: "Deployment URL", value: $details, inline: true }
                   ],
-                  # 【削除】imageフィールドを完全に削除
-                  thumbnail: { url: $icon },
+                  # chart URLが空でない場合のみ image フィールドを含める
+                  image: ($chart | length > 0) ? { url: $chart } : empty,
+                  thumbnail: { url: $repo_icon }, # サムネイルもリポジトリオーナーアイコン
                   timestamp: $time
                 }
               ]
