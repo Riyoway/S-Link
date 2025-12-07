@@ -63,7 +63,7 @@ S-Link のハイレベルな目標:
 | --- | --- |
 | フレームワーク | Next.js 16 |
 | 言語 | TypeScript |
-| UI | React 19, Tailwind CSS 4, Radix UI ベースのコンポーネント, カスタム UI コンポーネント |
+| UI | React 19, Tailwind CSS 4, Shadcn/UI, Lottiefiles (animations) |
 | 認証 | NextAuth |
 | データベース / Backend | Supabase (PostgreSQL) |
 | PWA | `@ducanh2912/next-pwa` |
