@@ -192,13 +192,13 @@ jobs:
           if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
             COLOR=5763719
             ICON="${SUCCESS_ICON}"
-            TITLE=":rocket: **${ENV_NAME} Deployment Success**"
-            STATUS="🟢 **Success**"
+            TITLE="**${ENV_NAME} Deployment Success**"
+            STATUS="### <a:online:1441732215259136141> **Success**\n---"
           else
             COLOR=15158332
             ICON="${FAILURE_ICON}"
             TITLE=":fire: **${ENV_NAME} Deployment Failed**"
-            STATUS="🔴 **Failed**"
+            STATUS="### <a:offline:1441732212771917824> **Failed**\n---"
           fi
 
           DETAILS="[View Details]($DEPLOY_URL)"
@@ -238,20 +238,19 @@ jobs:
                   author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
                   fields: [
                     # 第1列: 識別情報
-                    { name: "Environment", value: "${{ env.ENV_NAME }}", inline: true },
-                    { name: "Deployer", value: $by, inline: true },
-                    { name: "Ref/Branch", value: $ref_type, inline: true },
+                    { name: "Environment", value: "> ${{ env.ENV_NAME }}", inline: true },
+                    { name: "Deployer", value: "> " + $by, inline: true },
+                    { name: "Ref/Branch", value: "> " + $ref_type, inline: true },
                     
                     # 第2列: 統計情報
-                    { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
-                    { name: "Avg Build Time (s)", value: $avg, inline: true },
-                    { name: "Duration Lookback", value: "${{ env.LOOKBACK }} deployments", inline: true },
+                    { name: "Success Rate", value: "> " + ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
+                    { name: "Avg Build Time (s)", value: "> " + $avg, inline: true },
+                    { name: "Duration Lookback", value: "> ${{ env.LOOKBACK }} deployments", inline: true },
 
                     # 第3列: 詳細リンク
-                    { name: "Commit Hash", value: ("[`" + ($commit | .[:7]) + "`]" + "(" + $commit_url + ")"), inline: true },
-                    { name: "Deployment URL", value: $details, inline: true }
+                    { name: "Commit Hash", value: ("> [`" + ($commit | .[:7]) + "`]" + "(" + $commit_url + ")"), inline: true },
+                    { name: "Deployment URL", value: "> " + $details, inline: true }
                   ],
-                  thumbnail: { url: $repo_icon },
                   timestamp: $time
                 }
               ]
