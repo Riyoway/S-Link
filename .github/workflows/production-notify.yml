@@ -143,43 +143,13 @@ jobs:
           DETAILS="[Details]($DEPLOY_URL)"
 
           payload=$(jq -n \
-            --arg title "$TITLE" \
             --arg status "$STATUS" \
             --arg repo "$REPO" \
             --arg commit "$DEPLOY_COMMIT" \
             --arg by "$DEPLOY_BY" \
-            --arg time "$DEPLOY_TIME" \
             --arg details "$DETAILS" \
-            --arg chart "$CHART" \
-            --arg icon "$ICON" \
-            --argjson color "$COLOR" \
-            --arg total "$TOTAL" \
-            --arg success "$SUCCESS" \
-            --arg failure "$FAILURE" \
-            --arg avg "$AVG" \
-            --arg rate "$RATE" \
             '{
-              username: "Vercel Notify",
-              avatar_url: $icon,
-              embeds: [
-                {
-                  title: $title,
-                  description: $status,
-                  url: ($details | sub("^\\[Details\\]\\((.*)\\)$"; "\\1")),
-                  color: $color,
-                  author: { name: $repo, icon_url: $icon },
-                  fields: [
-                    { name: "Commit", value: ("`" + ($commit|.[:7]) + "`"), inline: true },
-                    { name: "By", value: $by, inline: true },
-                    { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
-                    { name: "Avg Build (s)", value: ($avg), inline: true },
-                    { name: "Details", value: $details, inline: false }
-                  ],
-                  image: { url: $chart },
-                  thumbnail: { url: $icon },
-                  timestamp: $time
-                }
-              ]
+              content: ($status + " - " + $repo + " (" + $by + ")\n" + $details + "\nCommit: " + $commit)
             }')
 
           curl -s -H "Content-Type: application/json" -X POST \
