@@ -1,62 +1,185 @@
-name: Notify Discord on Vercel Production Deploy
+name: Vercel Production — Card Notify
 
 on:
   deployment_status:
 
+env:
+  LOOKBACK: 20
+  SUCCESS_ICON: "https://example.com/success.png"
+  FAILURE_ICON: "https://example.com/failure.png"
+  CHART_HOST: "https://quickchart.io/chart"
+
 jobs:
   notify:
-    if: |
-      github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Production'
+    if: github.event.deployment.environment == 'Production'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send embed to Discord
+      - name: Install dependencies
         run: |
-          STATE="${{ github.event.deployment_status.state }}"
-          ENV="${{ github.event.deployment.environment }}"
-          URL="${{ github.event.deployment_status.target_url }}"
-          REPO="${{ github.repository }}"
-          COMMIT="${{ github.event.deployment.sha }}"
-          TIME="${{ github.event.deployment_status.updated_at }}"
-          TRIGGER="${{ github.event.sender.login }}"
+          sudo apt-get update -y
+          sudo apt-get install -y jq python3
 
-          # success=green / others=red
-          if [ "$STATE" = "success" ]; then
-            COLOR=3066993
-          else
-            COLOR=15158332
+      - name: Build stats and chart
+        id: stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          LOOKBACK="${LOOKBACK}"
+          REPO="${REPO}"
+
+          deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
+
+          total=$(echo "$deps_json" | jq 'length')
+
+          successes=0
+          failures=0
+          durations=()
+          labels=()
+          values=()
+          colors=()
+
+          if [ "$total" -gt 0 ]; then
+            for i in $(seq 0 $(($total - 1))); do
+              dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
+              dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
+              dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
+
+              st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
+
+              st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
+              st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
+
+              short_sha=$(echo "$dep_sha" | cut -c1-7)
+              labels+=("$short_sha")
+
+              if [ "$st_state" = "success" ]; then
+                successes=$((successes+1))
+                values+=("1")
+                colors+=("\"#2ecc71\"")
+              else
+                failures=$((failures+1))
+                values+=("0")
+                colors+=("\"#e74c3c\"")
+              fi
+
+              if [ -n "$st_updated" ]; then
+                created_s=$(date -d "$dep_created" +%s)
+                updated_s=$(date -d "$st_updated" +%s)
+                durations+=($((updated_s - created_s)))
+              else
+                durations+=(0)
+              fi
+            done
           fi
 
-          payload=$(jq -n \
-            --arg state "$STATE" \
-            --arg env "$ENV" \
-            --arg url "$URL" \
-            --arg repo "$REPO" \
-            --arg commit "$COMMIT" \
-            --arg trigger "$TRIGGER" \
-            --arg time "$TIME" \
-            --argjson color "$COLOR" \
+          if [ "$total" -gt 0 ]; then
+            sum=0
+            for d in "${durations[@]}"; do sum=$((sum + d)); done
+            avg=$((sum / total))
+            rate=$(awk "BEGIN { printf \"%.1f\", (${successes}/${total}) * 100 }")
+          else
+            avg=0
+            rate="0.0"
+          fi
+
+          labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
+          values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
+          colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
+
+          chart_cfg=$(jq -n \
+            --argjson labels "$labels_json" \
+            --argjson data "$values_json" \
+            --argjson colors "$colors_json" \
             '{
-              "embeds": [
+              type: "bar",
+              data: { labels: $labels, datasets: [{ data: $data, backgroundColor: $colors }] },
+              options: { legend: { display: false } }
+            }'
+          )
+
+          chart_cfg_enc=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$chart_cfg")
+
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "success=$successes" >> $GITHUB_OUTPUT
+          echo "failure=$failures" >> $GITHUB_OUTPUT
+          echo "avg=$avg" >> $GITHUB_OUTPUT
+          echo "rate=$rate" >> $GITHUB_OUTPUT
+          echo "chart=${CHART_HOST}?c=${chart_cfg_enc}" >> $GITHUB_OUTPUT
+
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
+          DEPLOY_COMMIT: ${{ github.event.deployment.sha }}
+          DEPLOY_BY: ${{ github.event.deployment.creator.login }}
+          DEPLOY_TIME: ${{ github.event.deployment_status.updated_at }}
+          REPO: ${{ github.repository }}
+          TOTAL: ${{ steps.stats.outputs.total }}
+          SUCCESS: ${{ steps.stats.outputs.success }}
+          FAILURE: ${{ steps.stats.outputs.failure }}
+          AVG: ${{ steps.stats.outputs.avg }}
+          RATE: ${{ steps.stats.outputs.rate }}
+          CHART: ${{ steps.stats.outputs.chart }}
+        run: |
+          if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
+            COLOR=5763719
+            ICON="${SUCCESS_ICON}"
+            TITLE="Production Deployed"
+            STATUS="🟢 Success"
+          else
+            COLOR=15158332
+            ICON="${FAILURE_ICON}"
+            TITLE="Deployment Failed"
+            STATUS="🔴 Failed"
+          fi
+
+          DETAILS="[Details]($DEPLOY_URL)"
+
+          payload=$(jq -n \
+            --arg title "$TITLE" \
+            --arg status "$STATUS" \
+            --arg repo "$REPO" \
+            --arg commit "$DEPLOY_COMMIT" \
+            --arg by "$DEPLOY_BY" \
+            --arg time "$DEPLOY_TIME" \
+            --arg details "$DETAILS" \
+            --arg chart "$CHART" \
+            --arg icon "$ICON" \
+            --argjson color "$COLOR" \
+            --arg total "$TOTAL" \
+            --arg success "$SUCCESS" \
+            --arg failure "$FAILURE" \
+            --arg avg "$AVG" \
+            --arg rate "$RATE" \
+            '{
+              username: "Vercel Notify",
+              avatar_url: $icon,
+              embeds: [
                 {
-                  "title": "Vercel Production Deploy Completed",
-                  "description": "**New production deployment finished.**",
-                  "color": $color,
-                  "fields": [
-                    { "name": "Status", "value": $state, "inline": true },
-                    { "name": "Repository", "value": $repo, "inline": true },
-                    { "name": "Commit", "value": $commit, "inline": false },
-                    { "name": "Triggered By", "value": $trigger, "inline": true },
-                    { "name": "Environment", "value": $env, "inline": true },
-                    { "name": "Preview URL", "value": $url, "inline": false }
+                  title: $title,
+                  description: $status,
+                  url: ($details | sub("^\\[Details\\]\\((.*)\\)$"; "\\1")),
+                  color: $color,
+                  author: { name: $repo, icon_url: $icon },
+                  fields: [
+                    { name: "Commit", value: ("`" + ($commit|.[:7]) + "`"), inline: true },
+                    { name: "By", value: $by, inline: true },
+                    { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
+                    { name: "Avg Build (s)", value: ($avg), inline: true },
+                    { name: "Details", value: $details, inline: false }
                   ],
-                  "timestamp": $time
+                  image: { url: $chart },
+                  thumbnail: { url: $icon },
+                  timestamp: $time
                 }
               ]
             }')
 
-          curl -H "Content-Type: application/json" \
-            -X POST \
-            -d "$payload" \
-            "${{ secrets.DISCORD_WEBHOOK_URL }}"
+          curl -s -H "Content-Type: application/json" -X POST \
+            -d "$payload" "$DISCORD_WEBHOOK"
