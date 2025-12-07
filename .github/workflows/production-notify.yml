@@ -1,4 +1,4 @@
-name: "Vercel Production - Card Notify"
+name: "S-Link Production - Notify"
 
 on: deployment_status
 
@@ -129,12 +129,12 @@ jobs:
             COLOR=5763719
             ICON="${SUCCESS_ICON}"
             TITLE="**${ENV_NAME} Deployment Success**"
-            STATUS="### ✅ Success\n---"
+            STATUS="### <a:online:1441732215259136141> Success"
           else
             COLOR=15158332
             ICON="${FAILURE_ICON}"
             TITLE=":fire: **${ENV_NAME} Deployment Failed**"
-            STATUS="### ❌ Failed\n---"
+            STATUS="### <a:offline:1441732212771917824> Failed"
           fi
 
           DETAILS="[View Details]($DEPLOY_URL)"
@@ -170,7 +170,7 @@ jobs:
               embeds: [
                 {
                   title: $title,
-                  description: "\($status)\n -# The server has been successfully updated and deployed!",
+                  description: "\($status)\nThe server has been successfully updated and deployed!",
                   url: $deploy_url,
                   color: $color,
                   author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
