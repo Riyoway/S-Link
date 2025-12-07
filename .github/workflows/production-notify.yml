@@ -171,7 +171,7 @@ jobs:
                 {
                   title: $title,
                   description: "\($status)\nThe server has been successfully updated and deployed!",
-                  url: $deploy_url,
+                  url: "https://s-link-ktc.vercel.app/",
                   color: $color,
                   author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
                   fields: [
