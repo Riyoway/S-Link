@@ -4,15 +4,11 @@ on: deployment_status
 
 env:
   LOOKBACK: 20
-  # ステータスを示すアイコン
   SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1089914717150122044.webp?size=32&animated=false"
   FAILURE_ICON: "https://cdn.discordapp.com/emojis/1089914757300768828.webp?size=32&animated=false"
-  # QuickChart 短縮URL API エンドポイント
-  CHART_HOST: "https://quickchart.io/chart/create" 
 
 jobs:
   notify:
-    # Production環境で成功または失敗した場合のみ実行
     if: github.event.deployment.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
     runs-on: ubuntu-latest
 
@@ -27,7 +23,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y jq python3
 
-      - name: Build stats and chart (Short URL API)
+      - name: Build deployment stats
         id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,19 +33,13 @@ jobs:
           
           LOOKBACK="${LOOKBACK}"
           REPO="${REPO}"
-          CHART_API_HOST="${CHART_HOST}"
           
-          # リポジトリオーナーのアイコンURLを取得
           REPO_ICON_URL="${{ github.event.repository.owner.avatar_url }}"
 
-          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
-          
-          # APIリクエスト (Deploymentsの取得)
           deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
 
           json_type=$(echo "$deps_json" | jq -r type)
-
           if [ "$json_type" != "array" ]; then
             echo "::error::GitHub API returned an error object instead of an array."
             echo "Response content: $deps_json"
@@ -60,14 +50,10 @@ jobs:
           successes=0
           failures=0
           durations=()
-          labels=()
-          values=()
-          colors=()
 
           if [ "$total" -gt 0 ]; then
             for i in $(seq 0 $(($total - 1))); do
               dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
-              dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
               dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
 
               st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
@@ -76,17 +62,10 @@ jobs:
               st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
               st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
 
-              short_sha=$(echo "$dep_sha" | cut -c1-7)
-              labels+=("$short_sha")
-
               if [ "$st_state" = "success" ]; then
                 successes=$((successes+1))
-                values+=("1")
-                colors+=("#2ecc71")
               else
                 failures=$((failures+1))
-                values+=("0")
-                colors+=("#e74c3c")
               fi
 
               if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
@@ -108,62 +87,17 @@ jobs:
             avg=0
             rate="0.0"
           fi
-          
-          labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
-          values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
-          colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
 
-          # QuickChart設定のJSONを構築 (短縮URL対応のため 'chart' キーで囲む)
-          chart_cfg_json=$(jq -n \
-            --argjson labels "$labels_json" \
-            --argjson data "$values_json" \
-            --argjson colors "$colors_json" \
-            '{
-              chart: {
-                type: "bar",
-                data: { labels: $labels, datasets: [{ data: $data, backgroundColor: $colors }] },
-                options: { 
-                  legend: { display: false }, 
-                  scales: { 
-                    yAxes: [{ 
-                      ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value){return value==1?\"Success\":\"Failure\"}" },
-                      scaleLabel: { display: true, labelString: "Status" }
-                    }],
-                    xAxes: [{ scaleLabel: { display: true, labelString: "Commit SHA" } }]
-                  }
-                }
-              }
-            }'
-          )
-          
-          # QuickChartの短縮URL APIにJSONをPOSTし、短縮URLを取得
-          chart_response=$(curl -s -X POST \
-            -H "Content-Type: application/json" \
-            -d "$chart_cfg_json" \
-            "$CHART_API_HOST")
-
-          chart_url=$(echo "$chart_response" | jq -r '.url // empty')
-          
-          if [ -z "$chart_url" ]; then
-              echo "::warning::Failed to get short chart URL. Response: $chart_response"
-              chart_url=""
-          else
-              echo "Short Chart URL obtained: $chart_url"
-          fi
-
-          # 結果をGitHub Actionsの出力にセット
           echo "total=$total" >> $GITHUB_OUTPUT
           echo "success=$successes" >> $GITHUB_OUTPUT
           echo "failure=$failures" >> $GITHUB_OUTPUT
           echo "avg=$avg" >> $GITHUB_OUTPUT
           echo "rate=$rate" >> $GITHUB_OUTPUT
-          echo "chart=$chart_url" >> $GITHUB_OUTPUT
           echo "repo_icon_url=$REPO_ICON_URL" >> $GITHUB_OUTPUT
 
-      - name: Send Discord notification (FINAL VERSION)
+      - name: Send Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          # GitHub Actionsから取得可能な全ての関連データをENVに設定
           DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
           DEPLOY_COMMIT: ${{ github.event.deployment.sha }}
           DEPLOY_BY: ${{ github.event.deployment.creator.login }}
@@ -178,12 +112,13 @@ jobs:
           FAILURE: ${{ steps.stats.outputs.failure }}
           AVG: ${{ steps.stats.outputs.avg }}
           RATE: ${{ steps.stats.outputs.rate }}
-          CHART: ${{ steps.stats.outputs.chart }}
           REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }}
+          SUCCESS_ICON: ${{ env.SUCCESS_ICON }}
+          FAILURE_ICON: ${{ env.FAILURE_ICON }}
 
         run: |
           set -euo pipefail
-          
+
           if [ -z "$DISCORD_WEBHOOK" ]; then
             echo "::error::DISCORD_WEBHOOK_URL secret is empty."
             exit 1
@@ -193,20 +128,18 @@ jobs:
             COLOR=5763719
             ICON="${SUCCESS_ICON}"
             TITLE="**${ENV_NAME} Deployment Success**"
-            STATUS="### <a:online:1441732215259136141> **Success**\n---"
+            STATUS="### <a:online:1441732215259136141> Success\n---"
           else
             COLOR=15158332
             ICON="${FAILURE_ICON}"
             TITLE=":fire: **${ENV_NAME} Deployment Failed**"
-            STATUS="### <a:offline:1441732212771917824> **Failed**\n---"
+            STATUS="### <a:offline:1441732212771917824> Failed\n---"
           fi
 
           DETAILS="[View Details]($DEPLOY_URL)"
           COMMIT_URL="${REPO_URL}/commit/${DEPLOY_COMMIT}"
-          DEPLOY_EMBED_URL="$DEPLOY_URL"
 
-          # 1. 基本ペイロードを生成 (imageフィールドを含まない)
-          BASE_PAYLOAD=$(jq -n \
+          payload=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
             --arg repo "$REPO" \
@@ -221,67 +154,43 @@ jobs:
             --arg failure "$FAILURE" \
             --arg avg "$AVG" \
             --arg rate "$RATE" \
-            --arg deploy_embed_url "$DEPLOY_EMBED_URL" \
             --arg commit_url "$COMMIT_URL" \
             --arg ref_type "$REF_TYPE" \
             --arg repo_icon "$REPO_ICON" \
             --arg repo_url "$REPO_URL" \
             '{
-              username: "Vercel Notify",
-              avatar_url: $icon, # 通知ユーザーアイコン (ステータスアイコン)
+              avatar_url: $icon, 
               embeds: [
                 {
                   title: $title,
-                  description: $status,
-                  url: $deploy_embed_url, 
+                  description: $status + "\n -# The server has been successfully updated and deployed!",
+                  url: $DEPLOY_URL,
                   color: $color,
                   author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
                   fields: [
-                    # 第1列: 識別情報
-                    { name: "Environment", value: "> ${{ env.ENV_NAME }}", inline: true },
-                    { name: "Deployer", value: "> " + $by, inline: true },
-                    { name: "Ref/Branch", value: "> " + $ref_type, inline: true },
-                    
-                    # 第2列: 統計情報
-                    { name: "Success Rate", value: "> " + ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
-                    { name: "Avg Build Time (s)", value: "> " + $avg, inline: true },
-                    { name: "Duration Lookback", value: "> ${{ env.LOOKBACK }} deployments", inline: true },
-
-                    # 第3列: 詳細リンク
-                    { name: "Commit Hash", value: ("> [`" + ($commit | .[:7]) + "`]" + "(" + $commit_url + ")"), inline: true },
-                    { name: "Deployment URL", value: "> " + $details, inline: true }
+                    { name: "Environment", value: "> \($ENV_NAME)", inline: true },
+                    { name: "Deployer", value: "> \($by)", inline: true },
+                    { name: "Ref/Branch", value: "> \($ref_type)", inline: true },
+                    { name: "Success Rate", value: "> \($rate)% (\($success)/\($total))", inline: true },
+                    { name: "Avg Build Time (s)", value: "> \($avg)", inline: true },
+                    { name: "Duration Lookback", value: "> $LOOKBACK deployments", inline: true },
+                    { name: "Commit Hash", value: "> [`\($commit[0:7])`](\($commit_url))", inline: true },
+                    { name: "Deployment URL", value: "> \($details)", inline: true }
                   ],
                   timestamp: $time
                 }
               ]
             }')
-            
-          # 2. $CHARTが存在する場合、imageフィールドを追加する (安全な方法)
-          CHART_URL="$CHART"
-          
-          if [ -n "$CHART_URL" ]; then
-            echo "Attaching chart image to payload..."
-            # embeds[0]にimageフィールドを追加
-            payload=$(echo "$BASE_PAYLOAD" | jq --arg chart_url "$CHART_URL" '
-              .embeds[0] |= . + {"image": {"url": $chart_url}}
-            ')
-          else
-            echo "Chart URL is empty, skipping image field."
-            payload="$BASE_PAYLOAD"
-          fi
-
 
           echo "--- Discord Payload ---"
           echo "$payload"
           echo "-----------------------"
-          
-          echo "Sending request to Discord..."
+
           http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
-          
           echo "HTTP Status Code: $http_response"
           cat response.txt
 
           if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
-            echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
+            echo "::error::Discord returned a non-success HTTP code ($http_response)."
             exit 1
           fi
