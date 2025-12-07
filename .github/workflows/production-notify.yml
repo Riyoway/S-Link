@@ -34,7 +34,8 @@ jobs:
           deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
 
-          total=$(echo "$deps_json" | jq 'length')
+          # If the response is not an array (e.g. GitHub error object), treat as zero deployments
+          total=$(echo "$deps_json" | jq 'if type == "array" then length else 0 end')
 
           successes=0
           failures=0
