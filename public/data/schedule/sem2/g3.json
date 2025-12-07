@@ -1,0 +1,63 @@
+     [
+        {
+          "day_of_week": "月曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "CAD", "room": "044 M", "teacher": "美"}, {"subject": "CAD", "room": "321", "teacher": "森"}, {"subject": "英語", "room": "042", "teacher": "イリーナ"}, {"subject": "地盤工学", "room": "031 CA", "teacher": "立"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "材料", "room": "044 M", "teacher": "木"}, {"subject": "金属材料和", "room": "321", "teacher": "本"}, {"subject": "英語", "room": "042", "teacher": "イリーナ"}, {"subject": "地盤工学", "room": "001 CA", "teacher": null}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "積分学", "room": "321 S", "teacher": "神田"}, {"subject": "微積分学", "room": "042 A2", "teacher": "伊藤"}, {"subject": "英語30", "room": "031 CA", "teacher": "北島"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "S積分学", "room": "321", "teacher": "神田"}, {"subject": "A分学", "room": "042", "teacher": "伊藤"}, {"subject": "分", "room": "031 3", "teacher": null}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "保健体育", "room": "044 M", "teacher": "大野"}, {"subject": "工学", "room": "321", "teacher": "堀内"}, {"subject": "英語36", "room": "042", "teacher": "福岡"}, {"subject": "力学", "room": "011 CA", "teacher": "立"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "工学", "room": "321", "teacher": "本"}, {"subject": "積分学", "room": "221 A1", "teacher": "本"}, {"subject": "積分学", "room": "042 A2", "teacher": "伊藤"}, {"subject": "積分学", "room": "031", "teacher": "立"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "保健体育", "room": "044", "teacher": "大野"}, {"subject": "工学", "room": "321", "teacher": null}]},
+            {"time": "8限 (16:00-16:45)", "classes": [{"subject": "英語30", "room": "031 CA", "teacher": "イリーナ"}]},
+            {"time": "9限 (16:50-17:35)", "classes": [{"subject": "力学", "room": "031 CA", "teacher": "立"}]}
+          ]
+        },
+        {
+          "day_of_week": "火曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "工業力学", "room": "044", "teacher": "木"}, {"subject": "物理", "room": "031 CA CI", "teacher": "山"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "工業力学", "room": "044 M", "teacher": "水"}, {"subject": "CAD", "room": "044 M", "teacher": "内 小山"}, {"subject": "電子回路", "room": "042", "teacher": "内田"}, {"subject": "材料学", "room": "001 CA", "teacher": "立神"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "M", "room": "044", "teacher": "花卷"}, {"subject": "工", "room": "323", "teacher": "堀小山"}, {"subject": "工学実", "room": "224", "teacher": "本田 高"}, {"subject": "地盤工学", "room": "001 CA", "teacher": null}, {"subject": "積分学", "room": "313", "teacher": "神田"}, {"subject": "積分学", "room": "321 A1", "teacher": "伊藤"}, {"subject": "積分学", "room": "042 A2", "teacher": "織田"}, {"subject": "積分学", "room": "031 A3", "teacher": null}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "M", "room": "044", "teacher": "島田"}, {"subject": "工学実", "room": "323", "teacher": "内小山"}, {"subject": "地盤工学", "room": "GDCA", "teacher": null}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "工作実", "room": "044 Mb", "teacher": "若松"}, {"subject": "工作実", "room": "044 M", "teacher": "久員梅"}, {"subject": "英語", "room": "044 M", "teacher": "花巻"}, {"subject": "英語", "room": "321", "teacher": "本"}, {"subject": "英語", "room": "313 全(38)", "teacher": "福"}, {"subject": "英語", "room": "031 CA", "teacher": "イリーナ"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "工作実", "room": "044 Mb", "teacher": "右松"}, {"subject": "工作実", "room": "044 M", "teacher": "久"}, {"subject": "Ma工作実", "room": "石松 施", "teacher": "村田"}, {"subject": "英語36", "room": "321 E", "teacher": "イリーナ"}, {"subject": "英語36", "room": "042", "teacher": "福岡"}, {"subject": "保健体育", "room": "031 CA", "teacher": "大野"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "工作実", "room": "044 M", "teacher": "村田"}, {"subject": "工作実習", "room": "044 M", "teacher": "右松梅岡"}, {"subject": "システム設計", "room": "044 M", "teacher": "島田"}, {"subject": "英語", "room": "321", "teacher": "本 山本"}, {"subject": "国語", "room": "042", "teacher": "大野"}, {"subject": "保健体育", "room": "031 CA", "teacher": "神田"}]}
+          ]
+        },
+        {
+          "day_of_week": "水曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "CAD", "room": "323", "teacher": "内小山"}, {"subject": "工字", "room": "224", "teacher": "内田"}, {"subject": "電子回路", "room": "042", "teacher": "内小山"}, {"subject": "材料学", "room": "031 CA", "teacher": "立"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "CAD", "room": "323", "teacher": "内 小山"}, {"subject": "電子回路", "room": "042", "teacher": "内田"}, {"subject": "材料学", "room": "001 CA", "teacher": "立神"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "工", "room": "323", "teacher": "中華"}, {"subject": "工学実", "room": "224", "teacher": "本田 高"}, {"subject": "保健体育36", "room": "042", "teacher": "中華"}, {"subject": "地盤工学", "room": "001 CA", "teacher": null}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "工学実", "room": "323", "teacher": "内小山"}, {"subject": "保健体育", "room": "042", "teacher": "大野"}, {"subject": "地盤工学", "room": "GDCA", "teacher": null}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "保健体育", "room": "044", "teacher": "大野"}, {"subject": "保健", "room": "221", "teacher": "本田"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "CAD 製", "room": "松岡", "teacher": "松"}, {"subject": "CAD 製", "room": "松", "teacher": "華中田"}, {"subject": "コンピュータ", "room": "321", "teacher": "小山"}, {"subject": "コンピュータ", "room": "042", "teacher": "本田"}]}
+          ]
+        },
+        {
+          "day_of_week": "木曜日",
+          "periods": [
+            {"time": "1限 (8:30-10:15)", "classes": [{"subject": "英語", "room": "044", "teacher": "花卷"}, {"subject": "電路16", "room": "321", "teacher": "小山"}, {"subject": "CAO医", "room": "042", "teacher": "山本"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "物理", "room": "321", "teacher": "島田"}, {"subject": "理", "room": "042 CA", "teacher": "谷口"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "物理", "room": "321", "teacher": "中華"}, {"subject": "物理", "room": "042", "teacher": "右班"}, {"subject": "物理", "room": "031", "teacher": "内"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "物理", "room": "321", "teacher": "中"}, {"subject": "物理", "room": "042", "teacher": "久田"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "英語", "room": "044 M", "teacher": "花巻"}, {"subject": "英語", "room": "321", "teacher": "本"}, {"subject": "国語", "room": "042", "teacher": "山本"}, {"subject": "英語", "room": "031 CA", "teacher": "福岡"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "英語", "room": "321", "teacher": "イリーナ"}, {"subject": "保健体育", "room": "042", "teacher": "大野"}, {"subject": "英語", "room": "031 CA", "teacher": "北島"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "システム設計", "room": "M", "teacher": "松岡"}, {"subject": "工学", "room": "31", "teacher": "神田"}]}
+          ]
+        },
+        {
+          "day_of_week": "金曜日",
+          "periods": [
+            {"time": "1限 (8:30-10:15)", "classes": [{"subject": "英語", "room": "044", "teacher": "花卷"}, {"subject": "英語36", "room": "321", "teacher": "本"}, {"subject": "英語36", "room": "042", "teacher": "期間"}, {"subject": "CA", "room": "01", "teacher": "北島"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "微積分", "room": "313", "teacher": "山"}, {"subject": "微積分学", "room": "321 A1", "teacher": "吉川"}, {"subject": "工", "room": "042 A2", "teacher": "伊藤"}, {"subject": "分学", "room": "031 3", "teacher": "松島"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "物理", "room": "321", "teacher": "山"}, {"subject": "電磁気学", "room": "321", "teacher": "吉川"}, {"subject": "CA", "room": "042"}, {"subject": "CA", "room": "031"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "物理", "room": "321", "teacher": "山"}, {"subject": "電磁気学", "room": "32", "teacher": null}, {"subject": "CA", "room": "042"}, {"subject": "CA", "room": "031"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "CAD", "room": "044 M", "teacher": "中谷"}, {"subject": "CAD", "room": "321", "teacher": "中谷寺田"}, {"subject": "情報", "room": "042", "teacher": "松島"}, {"subject": "水理学", "room": "031", "teacher": "安开"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "電子材料", "room": "321", "teacher": "大谷"}, {"subject": "電子材料", "room": "321", "teacher": "大谷"}, {"subject": "情報", "room": "042", "teacher": null}, {"subject": "水理学", "room": "031", "teacher": "田中"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "セミナーLHR", "room": "044 M", "teacher": null}, {"subject": "学", "room": "031", "teacher": "田中"}]}
+          ]
+        }
+      ]

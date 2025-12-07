@@ -1,0 +1,63 @@
+[
+        {
+          "day_of_week": "月曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "保健体育26", "room": "211", "teacher": "大野"}, {"subject": "話", "room": "212", "teacher": "鈴木"}, {"subject": "政治経済", "room": "213", "teacher": null}, {"subject": "化学2", "room": "214", "teacher": null}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "体育", "room": "211", "teacher": "大野"}, {"subject": "化学26", "room": "212", "teacher": "山本"}, {"subject": "政治経済", "room": "213", "teacher": "鈴木"}, {"subject": "化学2", "room": "214", "teacher": "山本"}]},
+            {"time": "3限 (11:10-11:50)", "classes": [{"subject": "化学26", "room": "211", "teacher": "鈴木"}, {"subject": "保健体育", "room": "212", "teacher": "大野"}, {"subject": "物理20", "room": "213", "teacher": "西班"}, {"subject": "物理20", "room": "214", "teacher": "西班"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "保健体育", "room": "212", "teacher": "大野"}, {"subject": "化学", "room": "212", "teacher": "鈴木"}, {"subject": "情報", "room": "214", "teacher": "富"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "工学16", "room": "211", "teacher": "中杉本"}, {"subject": "工学概論", "room": "212", "teacher": "中村"}, {"subject": "工学概論", "room": "213", "teacher": "大土井"}, {"subject": "工学", "room": "218", "teacher": "大土井"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "工学概論", "room": "211", "teacher": "中村"}, {"subject": "工学", "room": "212", "teacher": "伊藤"}, {"subject": "工学", "room": "213", "teacher": "久保土"}, {"subject": "工学16", "room": "214", "teacher": "大久保"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "代数学", "room": "212", "teacher": "谷口"}, {"subject": "代数学", "room": "212 A1", "teacher": "谷口"}, {"subject": "形代数学:", "room": "211 A2", "teacher": "山下"}, {"subject": "形代数学", "room": "214 A3", "teacher": "山下"}]},
+            {"time": "8限 (16:00-16:45)", "classes": [{"subject": "代数学:", "room": "131 S", "teacher": "伊藤"}, {"subject": "代学", "room": "212", "teacher": "谷口"}]},
+            {"time": "9限 (16:50-17:35)", "classes": [{"subject": "代数学", "room": "211 A2", "teacher": "山下"}, {"subject": "代数学", "room": "214 A3", "teacher": "山下"}]}
+          ]
+        },
+        {
+          "day_of_week": "火曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "化学2", "room": "211", "teacher": "鈴木"}, {"subject": "物理", "room": "212", "teacher": "山本"}, {"subject": "英語", "room": "213", "teacher": "西田"}, {"subject": "英語", "room": "214", "teacher": "花卷"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "物理", "room": "211", "teacher": "鈴木"}, {"subject": "化学物", "room": "212", "teacher": "山本"}, {"subject": "英語", "room": "213", "teacher": "西田"}, {"subject": "世界史", "room": "214", "teacher": "田"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "微積分学Ib", "room": "211", "teacher": "神田"}, {"subject": "積分学", "room": "212 AT", "teacher": "山下"}, {"subject": "微積分学1b", "room": "211 A2", "teacher": "受本 善"}, {"subject": "微積分学Ib", "room": "214 A3", "teacher": "田"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "微積分学", "room": "313", "teacher": "神田"}, {"subject": "積分学16", "room": "212 A1", "teacher": "山下"}, {"subject": "分学1b", "room": "211 A2", "teacher": "本"}, {"subject": "微積分学16", "room": "214 A3", "teacher": "田"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "英語", "room": "210", "teacher": "イリーナ"}, {"subject": "英語", "room": "212", "teacher": null}, {"subject": "体育26", "room": "211", "teacher": "池田"}, {"subject": "物理", "room": "214", "teacher": "山"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "英語", "room": "211", "teacher": "前"}, {"subject": "英語", "room": "212", "teacher": "イリーナ"}, {"subject": "英語26", "room": "213", "teacher": "口"}, {"subject": "保健体育", "room": "214", "teacher": "池田"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "代数学", "room": "211", "teacher": "伊藤"}, {"subject": "形代数学", "room": "212 A1", "teacher": null}, {"subject": "代数学", "room": "211 A2", "teacher": "本"}, {"subject": "形代数学", "room": "214 A3", "teacher": "山下"}]}
+          ]
+        },
+        {
+          "day_of_week": "水曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "物理2", "room": "212", "teacher": "標準"}, {"subject": "保健体育20", "room": "213", "teacher": null}, {"subject": "保健体育20", "room": "214", "teacher": null}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "英語", "room": "211", "teacher": "山本"}, {"subject": "英語", "room": "212", "teacher": "山"}, {"subject": "体育", "room": "213", "teacher": "大野"}, {"subject": "黒", "room": "214", "teacher": null}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "世界史", "room": "211", "teacher": "島田"}, {"subject": "情報", "room": "212", "teacher": "木山下"}, {"subject": "英語", "room": "213", "teacher": "鈴木"}, {"subject": "化学", "room": "214", "teacher": null}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "政治経済", "room": "211", "teacher": "島田"}, {"subject": "情報", "room": "212", "teacher": "山下"}, {"subject": "物理", "room": "213", "teacher": "谷口"}, {"subject": "物理", "room": "214", "teacher": "銀山"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "CAE CAD", "room": "工学", "teacher": "木寺"}, {"subject": "CAE CAD", "room": "工学", "teacher": "山本"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "CAE CAD", "room": "工学", "teacher": "山本"}, {"subject": "CAE CAD", "room": "工学", "teacher": "山本"}]}
+          ]
+        },
+        {
+          "day_of_week": "木曜日",
+          "periods": [
+            {"time": "1限 (8:30-10:15)", "classes": [{"subject": "物理", "room": "211", "teacher": "島田"}, {"subject": "世界史", "room": "212", "teacher": "花卷"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "英語", "room": "211", "teacher": "量"}, {"subject": "保健体育", "room": "212", "teacher": "池田"}, {"subject": "情報", "room": "214", "teacher": "大野"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "情報", "room": "211", "teacher": "木寺"}, {"subject": "政治経済", "room": "212", "teacher": "島田"}, {"subject": "化学26", "room": "213", "teacher": "鈴木"}, {"subject": "物理26", "room": "214", "teacher": "登山"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "情報", "room": "211", "teacher": "木 山本"}, {"subject": "英語", "room": "213", "teacher": null}, {"subject": "政治経済", "room": "214", "teacher": "島田"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "国語26", "room": "211", "teacher": "山車"}, {"subject": "英語", "room": "212", "teacher": null}, {"subject": "英語", "room": "213", "teacher": "花卷"}, {"subject": "英語", "room": "214", "teacher": "查運"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "保健体", "room": "211", "teacher": "池田 山"}, {"subject": "物理", "room": "212", "teacher": null}, {"subject": "国語", "room": "213", "teacher": "山本"}, {"subject": "国語", "room": "214", "teacher": null}]}
+          ]
+        },
+        {
+          "day_of_week": "金曜日",
+          "periods": [
+            {"time": "1限 (8:30-10:15)", "classes": [{"subject": "物理", "room": "211", "teacher": "山"}, {"subject": "英語", "room": "213", "teacher": "イリーナ"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "物理", "room": "211", "teacher": "山"}, {"subject": "英語", "room": "212", "teacher": "イリーナ"}, {"subject": "英語26", "room": "213", "teacher": null}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "微積分 Ib", "room": "212 A1", "teacher": "山下"}, {"subject": "微積分", "room": "211 A2", "teacher": "本"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "積分学", "room": "212 A1", "teacher": "山下"}, {"subject": "微積分学16", "room": "211", "teacher": null}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "英語", "room": "214", "teacher": "近"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "2学", "room": "212", "teacher": "大久保"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "担任", "room": "212", "teacher": null}]},
+            {"time": "8限 (16:00-16:45)", "classes": [{"subject": "微積分学", "room": "214", "teacher": null}]}
+          ]
+        }
+      ]

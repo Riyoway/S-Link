@@ -1,0 +1,34 @@
+[
+        {
+          "day_of_week": "月曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "制工学", "room": "022", "teacher": null}, {"subject": "工学", "room": "021", "teacher": null}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "工学", "room": "022 M", "teacher": "浦"}, {"subject": "ロボット工学", "room": "322", "teacher": null}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "工学", "room": "022 M", "teacher": "中村"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "プロセス", "room": "022 M", "teacher": "中村"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "案研究", "room": "Ma", "teacher": "演出"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "卒業研究", "room": "3851 M", "teacher": "演出"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "案研究", "room": "M", "teacher": "演出"}]},
+            {"time": "8限 (16:00-16:45)", "classes": [{"subject": "素材", "room": "M", "teacher": "富田 木"}]},
+            {"time": "9限 (16:50-17:35)", "classes": [{"subject": "素材", "room": "M", "teacher": "久牌"}]},
+            {"time": "10限 (17:40-18:25)", "classes": [{"subject": null, "room": "M", "teacher": "荒"}]}
+          ]
+        },
+        {
+          "day_of_week": "火曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "ロボット工学", "room": "021", "teacher": null}, {"subject": "交通工学", "room": "033", "teacher": "中平"}, {"subject": "施工", "room": "034", "teacher": "立神"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "ロボット工学", "room": "023", "teacher": "貫"}, {"subject": "交通工", "room": "033", "teacher": "中華"}, {"subject": "施工", "room": "034", "teacher": "立神"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "情報実習Ⅲ", "room": "021 E", "teacher": "本班 島"}, {"subject": "CA", "room": "033", "teacher": "大久保"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "VRデザイン", "room": "023", "teacher": "中西"}, {"subject": "情報実習Ⅱ", "room": "033 CA", "teacher": "堀 松島 大久保"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "VRデザインル", "room": "023 A1", "teacher": "東"}]}
+          ]
+        },
+        {
+          "day_of_week": "水曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "流体工学特", "room": "51M", "teacher": null}, {"subject": "水理学特", "room": "510", "teacher": "安井"}, {"subject": "精工学", "room": "025 S2E", "teacher": null}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "流体工学特", "room": "SIM", "teacher": null}, {"subject": "水理学特論", "room": "510 SIE", "teacher": "安井"}, {"subject": "生產環境工学", "room": "025 SZE", "teacher": "近"}]}
+          ]
+        }
+      ]

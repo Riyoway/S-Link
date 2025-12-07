@@ -1,0 +1,36 @@
+[
+        {
+          "day_of_week": "月曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "計工学", "room": "212", "teacher": "中村"}, {"subject": "計工学", "room": "043", "teacher": "小山"}, {"subject": "応用物理", "room": "312", "teacher": "土井"}, {"subject": "CAD", "room": "043", "teacher": "元"}, {"subject": "CA 応用物理", "room": "041", "teacher": "本田"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "計工学", "room": "043 M", "teacher": "中村"}, {"subject": "計工学", "room": "043", "teacher": "小山"}, {"subject": "CAD", "room": "043", "teacher": "土井"}, {"subject": "応用物理", "room": "032", "teacher": "本田"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "応用物理", "room": "312", "teacher": "土井"}, {"subject": "データ処理", "room": "043", "teacher": "元"}, {"subject": "応用物理", "room": "032", "teacher": "本田"}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "応用物理", "room": "043", "teacher": "元"}, {"subject": "CAD", "room": "043", "teacher": null}, {"subject": "データ処理", "room": "043", "teacher": "土井"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "英語", "room": "041 M", "teacher": "本田"}, {"subject": "英語", "room": "312", "teacher": "本"}, {"subject": "CA 応用物理", "room": "032", "teacher": "土井"}, {"subject": "水理学演習", "room": "032", "teacher": "安井"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "メカトロニクス", "room": "041", "teacher": null}, {"subject": "水理学演", "room": "0310", "teacher": "安井"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "メカトロニクス", "room": "041", "teacher": null}, {"subject": "済学", "room": "032 CA", "teacher": "口"}]},
+            {"time": "8限 (16:00-16:45)", "classes": [{"subject": "ゲーム", "room": "041", "teacher": null}, {"subject": "済学", "room": "032 CA", "teacher": "口"}]},
+            {"time": "9限 (16:50-17:35)", "classes": [{"subject": "済学", "room": "032 CA", "teacher": "中華"}]},
+            {"time": "10限 (17:40-18:25)", "classes": [{"subject": "測量學", "room": "032 CA", "teacher": null}]}
+          ]
+        },
+        {
+          "day_of_week": "火曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "Ma工学", "room": "043", "teacher": null}, {"subject": "電子工学", "room": "312", "teacher": null}, {"subject": "数理", "room": "041", "teacher": null}, {"subject": "語和", "room": "032 CA", "teacher": null}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "電", "room": "043 Mb", "teacher": "村田"}, {"subject": "電子工学", "room": "312", "teacher": "山内"}, {"subject": "46", "room": "032 CA", "teacher": "大内"}]},
+            {"time": "3限 (11:10-11:55)", "classes": [{"subject": "電気工学", "room": "043 M", "teacher": "村田"}, {"subject": "実", "room": "322", "teacher": "中西国内 吉川"}, {"subject": "保健体育46", "room": "041", "teacher": "辻本"}, {"subject": "横造力学", "room": "032 CA", "teacher": "松岡"}, {"subject": "英語46", "room": "043 M", "teacher": null}]},
+            {"time": "4限 (12:00-12:45)", "classes": [{"subject": "電気工学", "room": "043", "teacher": "村田"}, {"subject": "工学実験", "room": "322", "teacher": "中西内 吉川"}, {"subject": "英語46", "room": "041", "teacher": "花巷"}, {"subject": "造力学", "room": "032 CA", "teacher": "松岡"}]},
+            {"time": "5限 (13:30-14:15)", "classes": [{"subject": "工業学", "room": "043 M", "teacher": "元"}, {"subject": "力学演", "room": "043", "teacher": null}, {"subject": "済学", "room": "041", "teacher": null}, {"subject": "地盤工学演習", "room": "032", "teacher": "石田"}]},
+            {"time": "6限 (14:20-15:05)", "classes": [{"subject": "工業学", "room": "043 M", "teacher": "福岡"}, {"subject": "済学", "room": "041", "teacher": null}, {"subject": "保健体育", "room": "002 CA", "teacher": "辻本"}]},
+            {"time": "7限 (15:10-15:55)", "classes": [{"subject": "応用物", "room": "043 M", "teacher": "北川"}, {"subject": "済学", "room": "041", "teacher": "樋口 石田"}, {"subject": "済学", "room": "043 M", "teacher": "樋口"}]}
+          ]
+        },
+        {
+          "day_of_week": "水曜日",
+          "periods": [
+            {"time": "1限 (9:30-10:15)", "classes": [{"subject": "メカトロニクス", "room": "043", "teacher": "久員 M"}]},
+            {"time": "2限 (10:20-11:05)", "classes": [{"subject": "メカトロニクス", "room": "043 M", "teacher": "村田"}]}
+          ]
+        }
+      ]
