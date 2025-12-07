@@ -1,12 +1,11 @@
-name: "Vercel Production - Card Notify"
+name: "Vercel Production - Card Notify (No Chart)"
 
 on: deployment_status
 
 env:
-  LOOKBACK: 20
+  # アイコンURLを直接変数として定義 (Discord通知ステップで使用)
   SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1441732215259136141.webp?size=32&animated=true"
   FAILURE_ICON: "https://cdn.discordapp.com/emojis/1441732212771917824.webp?size=32&animated=true"
-  CHART_HOST: "https://quickchart.io/chart"
 
 jobs:
   notify:
@@ -15,137 +14,41 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      deployments: read
+      deployments: read # 統計情報収集のために必要だったが、今回は不要。念のため残す。
       contents: read
       statuses: read
 
     steps:
-      - name: Install dependencies (jq, python3)
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq python3
-
-      - name: Build stats and chart
-        id: stats
+      # 【変更】統計情報収集ステップを簡素化し、必須情報のみを抽出する
+      - name: Extract Deployment Info
+        id: info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           
-          LOOKBACK="${LOOKBACK}"
-          REPO="${REPO}"
-
-          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
-
-          # APIリクエスト (Deploymentsの取得)
-          deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
-
-          json_type=$(echo "$deps_json" | jq -r type)
-
-          if [ "$json_type" != "array" ]; then
-            echo "::error::GitHub API returned an error object instead of an array."
-            echo "Response content: $deps_json"
-            exit 1
-          fi
-
-          total=$(echo "$deps_json" | jq 'length')
-          echo "Found $total deployments."
-
-          successes=0
-          failures=0
-          durations=()
-          labels=()
-          values=()
-          colors=()
-
-          if [ "$total" -gt 0 ]; then
-            for i in $(seq 0 $(($total - 1))); do
-              dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
-              dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
-              dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
-
-              # 各デプロイの最新ステータス取得
-              st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
-
-              st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
-              st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
-
-              short_sha=$(echo "$dep_sha" | cut -c1-7)
-              labels+=("$short_sha")
-
-              if [ "$st_state" = "success" ]; then
-                successes=$((successes+1))
-                values+=("1")
-                colors+=("#2ecc71")
-              else
-                failures=$((failures+1))
-                values+=("0")
-                colors+=("#e74c3c")
-              fi
-
-              # ビルド時間の計算 (秒)
-              if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
-                created_s=$(date -d "$dep_created" +%s || echo 0)
-                updated_s=$(date -d "$st_updated" +%s || echo 0)
-                durations+=($((updated_s - created_s)))
-              else
-                durations+=(0)
-              fi
-            done
-          fi
-
-          # 統計情報の計算
-          if [ "$total" -gt 0 ]; then
-            sum=0
-            for d in "${durations[@]}"; do sum=$((sum + d)); done
-            avg=$((sum / total))
-            rate=$(awk "BEGIN { printf \"%.1f\", (${successes}/${total}) * 100 }")
-          else
-            avg=0
-            rate="0.0"
-          fi
+          DEP_ID=${{ github.event.deployment.id }}
           
-          labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
-          values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
-          colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
+          # 現在のデプロイステータスから日時を取得
+          DEPLOY_CREATED=${{ github.event.deployment.created_at }}
+          DEPLOY_UPDATED=${{ github.event.deployment_status.updated_at }}
+          
+          # デプロイ時間を計算 (秒)
+          created_s=$(date -d "$DEPLOY_CREATED" +%s || echo 0)
+          updated_s=$(date -d "$DEPLOY_UPDATED" +%s || echo 0)
+          duration=$((updated_s - created_s))
+          
+          # ステータス情報として、今回のデプロイ時間のみを保持
+          echo "avg=$duration" >> $GITHUB_OUTPUT 
+          # 成功率などは計算しないため、固定値を設定（または削除）
+          echo "rate=N/A" >> $GITHUB_OUTPUT
+          echo "total=1" >> $GITHUB_OUTPUT
+          echo "success=N/A" >> $GITHUB_OUTPUT
+          echo "failure=N/A" >> $GITHUB_OUTPUT
 
-          # QuickChart設定の生成 (callback内のクォートを修正済)
-          chart_cfg=$(jq -n \
-            --argjson labels "$labels_json" \
-            --argjson data "$values_json" \
-            --argjson colors "$colors_json" \
-            '{
-              type: "bar",
-              data: { labels: $labels, datasets: [{ data: $data, backgroundColor: $colors }] },
-              options: { 
-                legend: { display: false }, 
-                scales: { 
-                  yAxes: [{ 
-                    ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value){return value==1?\"Success\":\"Failure\"}" },
-                    scaleLabel: { display: true, labelString: "Status" }
-                  }],
-                  xAxes: [{ scaleLabel: { display: true, labelString: "Commit SHA" } }]
-                }
-              }
-            }'
-          )
- 
-          # PythonでURLエンコード
-          chart_cfg_enc=$(python3 -c "import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))" <<<"$chart_cfg")
 
-          # 結果をGitHub Actionsの出力にセット
-          echo "total=$total" >> $GITHUB_OUTPUT
-          echo "success=$successes" >> $GITHUB_OUTPUT
-          echo "failure=$failures" >> $GITHUB_OUTPUT
-          echo "avg=$avg" >> $GITHUB_OUTPUT
-          echo "rate=$rate" >> $GITHUB_OUTPUT
-          echo "chart=${CHART_HOST}?c=${chart_cfg_enc}" >> $GITHUB_OUTPUT
-          echo "Chart URL length: ${#CHART_HOST}?c=${chart_cfg_enc}"
-
-      - name: Send Discord notification (fixed)
+      - name: Send Discord notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
@@ -153,15 +56,14 @@ jobs:
           DEPLOY_BY: ${{ github.event.deployment.creator.login }}
           DEPLOY_TIME: ${{ github.event.deployment_status.updated_at }}
           REPO: ${{ github.repository }}
-          TOTAL: ${{ steps.stats.outputs.total }}
-          SUCCESS: ${{ steps.stats.outputs.success }}
-          FAILURE: ${{ steps.stats.outputs.failure }}
-          AVG: ${{ steps.stats.outputs.avg }}
-          RATE: ${{ steps.stats.outputs.rate }}
-          CHART: ${{ steps.stats.outputs.chart }}
+          # 【変更】チャート関連の変数は削除し、今回の情報のみを使用
+          AVG: ${{ steps.info.outputs.avg }}
+          TOTAL: ${{ steps.info.outputs.total }}
+          RATE: ${{ steps.info.outputs.rate }}
+          
         run: |
           set -euo pipefail
-
+          
           if [ -z "$DISCORD_WEBHOOK" ]; then
             echo "::error::DISCORD_WEBHOOK_URL secret is empty. Please set the secret."
             exit 1
@@ -179,27 +81,22 @@ jobs:
             STATUS="🔴 Failed"
           fi
 
-          # シェル側で安全に加工して jq に渡す
-          DETAILS_URL="$DEPLOY_URL"
-          SHORT_COMMIT="${DEPLOY_COMMIT:0:7}"
-          CHART_URL="$CHART"
+          DETAILS="[Details]($DEPLOY_URL)"
 
           payload=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
             --arg repo "$REPO" \
-            --arg short_commit "$SHORT_COMMIT" \
+            --arg commit "$DEPLOY_COMMIT" \
             --arg by "$DEPLOY_BY" \
             --arg time "$DEPLOY_TIME" \
-            --arg details_url "$DETAILS_URL" \
-            --arg chart "$CHART_URL" \
+            --arg details "$DETAILS" \
             --arg icon "$ICON" \
             --argjson color "$COLOR" \
-            --arg total "$TOTAL" \
-            --arg success "$SUCCESS" \
-            --arg failure "$FAILURE" \
             --arg avg "$AVG" \
             --arg rate "$RATE" \
+            --arg total "$TOTAL" \
+            --arg deploy_url "$DEPLOY_URL" \
             '{
               username: "Vercel Notify",
               avatar_url: $icon,
@@ -207,32 +104,34 @@ jobs:
                 {
                   title: $title,
                   description: $status,
-                  url: $details_url,
+                  # 【修正済】正しいURLをセット
+                  url: $deploy_url, 
                   color: $color,
                   author: { name: $repo, icon_url: $icon },
                   fields: [
-                    { name: "Commit", value: ("`" + $short_commit + "`"), inline: true },
+                    { name: "Commit", value: ("`" + ($commit | .[:7]) + "`"), inline: true },
                     { name: "By", value: $by, inline: true },
-                    { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
-                    { name: "Avg Build (s)", value: $avg, inline: true },
-                    { name: "Details", value: ("[Open](" + $details_url + ")"), inline: false }
+                    # 【変更】成功率を今回の情報のみに変更（または削除）
+                    { name: "Duration (s)", value: $avg, inline: true }, 
+                    { name: "Details", value: $details, inline: false }
                   ],
-                  image: { url: $chart },
+                  # 【削除】imageフィールドを完全に削除
                   thumbnail: { url: $icon },
                   timestamp: $time
                 }
               ]
             }')
-
+            
           echo "--- Discord Payload ---"
           echo "$payload"
           echo "-----------------------"
-
-          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK" || true)
-
+          
+          echo "Sending request to Discord..."
+          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
+          
           echo "HTTP Status Code: $http_response"
           echo "Response Body:"
-          cat response.txt || true
+          cat response.txt
 
           if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
             echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
