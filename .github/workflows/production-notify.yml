@@ -1,0 +1,65 @@
+name: Notify Discord when Vercel Production Deploy Completes
+
+on:
+  check_run:
+    types: [completed]
+
+jobs:
+  notify:
+    if: >
+      github.event.check_run.name == 'Vercel — Production'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send embed to Discord
+        run: |
+          STATUS="${{ github.event.check_run.conclusion }}"
+          START="${{ github.event.check_run.started_at }}"
+          END="${{ github.event.check_run.completed_at }}"
+          COMMIT="${{ github.event.check_run.head_sha }}"
+          TRIGGER="${{ github.event.sender.login }}"
+          CHECK_URL="${{ github.event.check_run.html_url }}"
+          REPO="${{ github.repository }}"
+          CHECK_NAME="${{ github.event.check_run.name }}"
+
+          # embed color (success=green, failure=red)
+          if [ "$STATUS" = "success" ]; then
+            COLOR=3066993
+          else
+            COLOR=15158332
+          fi
+
+          json=$(jq -n \
+            --arg status "$STATUS" \
+            --arg start "$START" \
+            --arg end "$END" \
+            --arg commit "$COMMIT" \
+            --arg trigger "$TRIGGER" \
+            --arg url "$CHECK_URL" \
+            --arg repo "$REPO" \
+            --arg name "$CHECK_NAME" \
+            --argjson color "$COLOR" \
+            '{
+              "embeds": [
+                {
+                  "title": $name,
+                  "description": "Vercel の Production デプロイ結果",
+                  "color": $color,
+                  "fields": [
+                    { "name": "Status", "value": $status, "inline": true },
+                    { "name": "Repository", "value": $repo, "inline": true },
+                    { "name": "Commit", "value": $commit, "inline": false },
+                    { "name": "Triggered By", "value": $trigger, "inline": true },
+                    { "name": "Start Time", "value": $start, "inline": true },
+                    { "name": "End Time", "value": $end, "inline": true },
+                    { "name": "Check Details", "value": $url, "inline": false }
+                  ],
+                  "timestamp": $end
+                }
+              ]
+            }')
+
+          curl -H "Content-Type: application/json" \
+            -X POST \
+            -d "$json" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
