@@ -1,10 +1,6 @@
 name: "Vercel Production - Card Notify"
 
-on:
-  deployment_status:
-    types:
-      - success
-      - failure
+on: deployment_status
 
 env:
   LOOKBACK: 20
@@ -14,7 +10,8 @@ env:
 
 jobs:
   notify:
-    if: github.event.deployment.environment == 'Production'
+    # EnvironmentがProduction、かつステータスが success か failure の場合のみ実行
+    if: github.event.deployment.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
     runs-on: ubuntu-latest
 
     steps:
