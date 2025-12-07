@@ -424,7 +424,7 @@ export default function OnboardingPage() {
                             >
                               利用規約
                             </Link>
-                            に同意しまま
+                            に同意します
                           </FormLabel>
                         </div>
                       </FormItem>

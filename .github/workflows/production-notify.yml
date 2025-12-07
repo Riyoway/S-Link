@@ -145,7 +145,7 @@ jobs:
           echo "chart=${CHART_HOST}?c=${chart_cfg_enc}" >> $GITHUB_OUTPUT
           echo "Chart URL length: ${#CHART_HOST}?c=${chart_cfg_enc}"
 
-      - name: Send Discord notification (with debug 🐛)
+      - name: Send Discord notification (fixed)
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
@@ -159,11 +159,9 @@ jobs:
           AVG: ${{ steps.stats.outputs.avg }}
           RATE: ${{ steps.stats.outputs.rate }}
           CHART: ${{ steps.stats.outputs.chart }}
-          
         run: |
           set -euo pipefail
-          
-          # 【追加】Webhook URLが設定されているかチェック
+
           if [ -z "$DISCORD_WEBHOOK" ]; then
             echo "::error::DISCORD_WEBHOOK_URL secret is empty. Please set the secret."
             exit 1
@@ -181,18 +179,20 @@ jobs:
             STATUS="🔴 Failed"
           fi
 
-          DETAILS="[Details]($DEPLOY_URL)"
+          # シェル側で安全に加工して jq に渡す
+          DETAILS_URL="$DEPLOY_URL"
+          SHORT_COMMIT="${DEPLOY_COMMIT:0:7}"
+          CHART_URL="$CHART"
 
-          # JSONペイロードの生成
           payload=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
             --arg repo "$REPO" \
-            --arg commit "$DEPLOY_COMMIT" \
+            --arg short_commit "$SHORT_COMMIT" \
             --arg by "$DEPLOY_BY" \
             --arg time "$DEPLOY_TIME" \
-            --arg details "$DETAILS" \
-            --arg chart "$CHART" \
+            --arg details_url "$DETAILS_URL" \
+            --arg chart "$CHART_URL" \
             --arg icon "$ICON" \
             --argjson color "$COLOR" \
             --arg total "$TOTAL" \
@@ -207,15 +207,15 @@ jobs:
                 {
                   title: $title,
                   description: $status,
-                  url: ($details | sub("^\\[Details\\]\\((.*)\\)$"; "\\1")),
+                  url: $details_url,
                   color: $color,
                   author: { name: $repo, icon_url: $icon },
                   fields: [
-                    { name: "Commit", value: ("`" + ($commit | .[:7]) + "`"), inline: true },
+                    { name: "Commit", value: ("`" + $short_commit + "`"), inline: true },
                     { name: "By", value: $by, inline: true },
                     { name: "Success Rate", value: ($rate + "% (" + $success + "/" + $total + ")"), inline: true },
-                    { name: "Avg Build (s)", value: ($avg), inline: true },
-                    { name: "Details", value: $details, inline: false }
+                    { name: "Avg Build (s)", value: $avg, inline: true },
+                    { name: "Details", value: ("[Open](" + $details_url + ")"), inline: false }
                   ],
                   image: { url: $chart },
                   thumbnail: { url: $icon },
@@ -223,18 +223,16 @@ jobs:
                 }
               ]
             }')
-            
-          # 【デバッグ】ペイロードとレスポンスをログに出力
+
           echo "--- Discord Payload ---"
           echo "$payload"
           echo "-----------------------"
-          
-          echo "Sending request to Discord..."
-          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
-          
+
+          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK" || true)
+
           echo "HTTP Status Code: $http_response"
           echo "Response Body:"
-          cat response.txt
+          cat response.txt || true
 
           if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
             echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
