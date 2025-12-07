@@ -6,11 +6,13 @@ on:
 
 jobs:
   notify:
-    if: >
-      github.event.check_run.name == 'Vercel — Production'
+    if: github.event.check_run.name == 'Vercel — Production'
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Send embed to Discord
         run: |
           STATUS="${{ github.event.check_run.conclusion }}"
@@ -38,23 +40,23 @@ jobs:
             --arg url "$CHECK_URL" \
             --arg repo "$REPO" \
             --arg name "$CHECK_NAME" \
-            --argjson color "$COLOR" \
+            --arg color "$COLOR" \
             '{
-              "embeds": [
+              embeds: [
                 {
-                  "title": $name,
-                  "description": "Vercel の Production デプロイ結果",
-                  "color": $color,
-                  "fields": [
-                    { "name": "Status", "value": $status, "inline": true },
-                    { "name": "Repository", "value": $repo, "inline": true },
-                    { "name": "Commit", "value": $commit, "inline": false },
-                    { "name": "Triggered By", "value": $trigger, "inline": true },
-                    { "name": "Start Time", "value": $start, "inline": true },
-                    { "name": "End Time", "value": $end, "inline": true },
-                    { "name": "Check Details", "value": $url, "inline": false }
+                  title: $name,
+                  description: "Vercel の Production デプロイ結果",
+                  color: ($color | tonumber),
+                  fields: [
+                    { name: "Status", value: $status, inline: true },
+                    { name: "Repository", value: $repo, inline: true },
+                    { name: "Commit", value: $commit, inline: false },
+                    { name: "Triggered By", value: $trigger, inline: true },
+                    { name: "Start Time", value: $start, inline: true },
+                    { name: "End Time", value: $end, inline: true },
+                    { name: "Check Details", value: $url, inline: false }
                   ],
-                  "timestamp": $end
+                  timestamp: $end
                 }
               ]
             }')
