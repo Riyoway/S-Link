@@ -4,8 +4,8 @@ on: deployment_status
 
 env:
   LOOKBACK: 20
-  SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1441732215259136141.webp?size=32&animated=true&quot"
-  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1441732212771917824.webp?size=32&animated=true&quot"
+  SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1441732215259136141.webp?size=32&animated=true"
+  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1441732212771917824.webp?size=32&animated=true"
   CHART_HOST: "https://quickchart.io/chart"
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       statuses: read
 
     steps:
-      - name: Install dependencies
+      - name: Install dependencies (jq, python3)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y jq python3
@@ -32,16 +32,19 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          
+          # 環境変数の設定 (すでにenvで設定されているが、ここではシェルのローカル変数として設定)
           LOOKBACK="${LOOKBACK}"
           REPO="${REPO}"
 
-          echo "Fetching deployments for repo: $REPO"
+          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
 
           # APIリクエスト (Deploymentsの取得)
+          # GitHub APIから最近のデプロイメント情報を取得
           deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
 
-          # レスポンスが配列(array)かチェックする
+          # レスポンスが配列(array)かチェックする (エラーオブジェクトではないか確認)
           json_type=$(echo "$deps_json" | jq -r type)
 
           if [ "$json_type" != "array" ]; then
@@ -66,7 +69,7 @@ jobs:
               dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
               dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
 
-              # 各デプロイのステータス取得
+              # 各デプロイの最新ステータス取得
               st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
 
@@ -79,14 +82,15 @@ jobs:
               if [ "$st_state" = "success" ]; then
                 successes=$((successes+1))
                 values+=("1")
-                colors+=("#2ecc71")
+                colors+=("#2ecc71") # Green
               else
                 failures=$((failures+1))
                 values+=("0")
-                colors+=("#e74c3c")
+                colors+=("#e74c3c") # Red
               fi
 
-              if [ -n "$st_updated" ]; then
+              # ビルド時間の計算 (秒)
+              if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
                 created_s=$(date -d "$dep_created" +%s || echo 0)
                 updated_s=$(date -d "$st_updated" +%s || echo 0)
                 durations+=($((updated_s - created_s)))
@@ -96,6 +100,7 @@ jobs:
             done
           fi
 
+          # 統計情報の計算
           if [ "$total" -gt 0 ]; then
             sum=0
             for d in "${durations[@]}"; do sum=$((sum + d)); done
@@ -105,11 +110,13 @@ jobs:
             avg=0
             rate="0.0"
           fi
-
+          
+          # JSON配列を生成
           labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
           values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
           colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
 
+          # QuickChart設定の生成
           chart_cfg=$(jq -n \
             --argjson labels "$labels_json" \
             --argjson data "$values_json" \
@@ -117,21 +124,32 @@ jobs:
             '{
               type: "bar",
               data: { labels: $labels, datasets: [{ data: $data, backgroundColor: $colors }] },
-              options: { legend: { display: false }, scales: { yAxes: [{ ticks: { min: 0, max: 1 } }] } }
+              options: { 
+                legend: { display: false }, 
+                scales: { 
+                  yAxes: [{ 
+                    ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value, index, values) { return value == 1 ? \'Success\' : \'Failure\' }" },
+                    scaleLabel: { display: true, labelString: "Status" }
+                  }],
+                  xAxes: [{ scaleLabel: { display: true, labelString: "Commit SHA" } }]
+                }
+              }
             }'
           )
 
           # PythonでURLエンコード
           chart_cfg_enc=$(python3 -c "import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))" <<<"$chart_cfg")
 
+          # 結果をGitHub Actionsの出力にセット
           echo "total=$total" >> $GITHUB_OUTPUT
           echo "success=$successes" >> $GITHUB_OUTPUT
           echo "failure=$failures" >> $GITHUB_OUTPUT
           echo "avg=$avg" >> $GITHUB_OUTPUT
           echo "rate=$rate" >> $GITHUB_OUTPUT
           echo "chart=${CHART_HOST}?c=${chart_cfg_enc}" >> $GITHUB_OUTPUT
+          echo "Chart URL length: ${#CHART_HOST}?c=${chart_cfg_enc}"
 
-      - name: Send Discord notification
+      - name: Send Discord notification (with debug 🐛)
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
@@ -145,22 +163,31 @@ jobs:
           AVG: ${{ steps.stats.outputs.avg }}
           RATE: ${{ steps.stats.outputs.rate }}
           CHART: ${{ steps.stats.outputs.chart }}
+          
         run: |
           set -euo pipefail
+          
+          # 【追加】Webhook URLが設定されているかチェック
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "::error::DISCORD_WEBHOOK_URL secret is empty. Please set the secret."
+            exit 1
+          fi
+
           if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
-            COLOR=5763719
+            COLOR=5763719    # Green
             ICON="${SUCCESS_ICON}"
-            TITLE="Production Deployed"
+            TITLE="✅ Production Deployed"
             STATUS="🟢 Success"
           else
-            COLOR=15158332
+            COLOR=15158332   # Red
             ICON="${FAILURE_ICON}"
-            TITLE="Deployment Failed"
+            TITLE="❌ Deployment Failed"
             STATUS="🔴 Failed"
           fi
 
           DETAILS="[Details]($DEPLOY_URL)"
 
+          # JSONペイロードの生成
           payload=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
@@ -200,5 +227,23 @@ jobs:
                 }
               ]
             }')
+            
+          # 【修正】デバッグのためのログ出力
+          echo "--- Discord Payload ---"
+          echo "$payload"
+          echo "-----------------------"
+          
+          # 【修正】curlコマンドの変更
+          # -s (サイレント) を削除し、-w (write out) でHTTPステータスを取得。
+          # -f でHTTPエラー時にcurlを失敗させる。
+          echo "Sending request to Discord..."
+          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
+          
+          echo "HTTP Status Code: $http_response"
+          echo "Response Body:"
+          cat response.txt
 
-          curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK"
+          if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
+            echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
+            exit 1
+          fi
