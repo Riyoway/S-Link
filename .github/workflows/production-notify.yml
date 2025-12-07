@@ -52,8 +52,8 @@ jobs:
               st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
 
-              st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
-              st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
+              st_state=$(echo "$st_json" | jq -r 'if type == "array" and length > 0 then .[0].state // "unknown" else "unknown" end')
+              st_updated=$(echo "$st_json" | jq -r 'if type == "array" and length > 0 then .[0].updated_at // empty else empty end')
 
               short_sha=$(echo "$dep_sha" | cut -c1-7)
               labels+=("$short_sha")
