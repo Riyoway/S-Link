@@ -18,23 +18,26 @@ jobs:
       statuses: read
 
     steps:
-      - name: Install dependencies (jq, python3)
+      - name: Install dependencies (jq)
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y jq python3
+          sudo apt-get install -y jq
 
-      - name: Build deployment stats
+      - name: Build stats
         id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          
+
           LOOKBACK="${LOOKBACK}"
           REPO="${REPO}"
-          
+
+          # リポジトリオーナーのアイコンURLを取得
           REPO_ICON_URL="${{ github.event.repository.owner.avatar_url }}"
+
+          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
 
           deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
@@ -50,10 +53,14 @@ jobs:
           successes=0
           failures=0
           durations=()
+          labels=()
+          values=()
+          colors=()
 
           if [ "$total" -gt 0 ]; then
             for i in $(seq 0 $(($total - 1))); do
               dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
+              dep_sha=$(echo "$deps_json" | jq -r ".[$i].sha // .[$i].ref")
               dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
 
               st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
@@ -62,10 +69,17 @@ jobs:
               st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
               st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
 
+              short_sha=$(echo "$dep_sha" | cut -c1-7)
+              labels+=("$short_sha")
+
               if [ "$st_state" = "success" ]; then
                 successes=$((successes+1))
+                values+=("1")
+                colors+=("#2ecc71")
               else
                 failures=$((failures+1))
+                values+=("0")
+                colors+=("#e74c3c")
               fi
 
               if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
@@ -88,6 +102,7 @@ jobs:
             rate="0.0"
           fi
 
+          # GitHub Actions 出力
           echo "total=$total" >> $GITHUB_OUTPUT
           echo "success=$successes" >> $GITHUB_OUTPUT
           echo "failure=$failures" >> $GITHUB_OUTPUT
@@ -105,7 +120,6 @@ jobs:
           ENV_NAME: ${{ github.event.deployment.environment }}
           REF_TYPE: ${{ github.event.deployment.ref }}
           REPO_URL: ${{ github.event.repository.html_url }}
-          
           REPO: ${{ github.repository }}
           TOTAL: ${{ steps.stats.outputs.total }}
           SUCCESS: ${{ steps.stats.outputs.success }}
@@ -113,8 +127,6 @@ jobs:
           AVG: ${{ steps.stats.outputs.avg }}
           RATE: ${{ steps.stats.outputs.rate }}
           REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }}
-          SUCCESS_ICON: ${{ env.SUCCESS_ICON }}
-          FAILURE_ICON: ${{ env.FAILURE_ICON }}
 
         run: |
           set -euo pipefail
@@ -128,12 +140,12 @@ jobs:
             COLOR=5763719
             ICON="${SUCCESS_ICON}"
             TITLE="**${ENV_NAME} Deployment Success**"
-            STATUS="### <a:online:1441732215259136141> Success\n---"
+            STATUS="### <a:online:1441732215259136141> **Success**\n---"
           else
             COLOR=15158332
             ICON="${FAILURE_ICON}"
             TITLE=":fire: **${ENV_NAME} Deployment Failed**"
-            STATUS="### <a:offline:1441732212771917824> Failed\n---"
+            STATUS="### <a:offline:1441732212771917824> **Failed**\n---"
           fi
 
           DETAILS="[View Details]($DEPLOY_URL)"
@@ -159,11 +171,11 @@ jobs:
             --arg repo_icon "$REPO_ICON" \
             --arg repo_url "$REPO_URL" \
             '{
-              avatar_url: $icon, 
+              avatar_url: $icon,
               embeds: [
                 {
                   title: $title,
-                  description: $status + "\n -# The server has been successfully updated and deployed!",
+                  description: "\($status)\n -# The server has been successfully updated and deployed!",
                   url: $DEPLOY_URL,
                   color: $color,
                   author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
@@ -186,11 +198,13 @@ jobs:
           echo "$payload"
           echo "-----------------------"
 
+          echo "Sending request to Discord..."
           http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
+
           echo "HTTP Status Code: $http_response"
           cat response.txt
 
           if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
-            echo "::error::Discord returned a non-success HTTP code ($http_response)."
+            echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
             exit 1
           fi
