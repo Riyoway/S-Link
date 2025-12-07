@@ -166,7 +166,6 @@ jobs:
             --arg lookback "$LOOKBACK" \
             --arg env_name "$ENV_NAME" \
             '{
-              avatar_url: $icon,
               embeds: [
                 {
                   title: $title,
