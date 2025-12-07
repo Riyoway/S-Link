@@ -1,0 +1,46 @@
+flowchart TD
+  %% エントリーポイント
+  A["ユーザーが保護ページ or /login へアクセス"] --> B{"サインイン済み?"}
+
+  B -- No --> C["NextAuth サインインページ /login"]
+  B -- Yes --> H{"プロフィール登録済み?"}
+
+  %% Google OAuth 開始
+  C --> D["ユーザーが「Googleでログイン」をクリック"]
+  D --> E["NextAuth API /api/auth/[...nextauth] (Google Provider)"]
+  E --> F["Google OAuth画面で認証"]
+  F --> G["Google から NextAuth へコールバック"]
+
+  %% signIn コールバック (メールドメイン制限)
+  G --> I["signInコールバック (auth.ts)"]
+  I --> J{"user.email が @ktc.ac.jp か?"}
+
+  J -- No --> K["signIn: false を返す"]
+  K --> L["NextAuth エラーページ /auth/error?error=AccessDenied"]
+  L --> M["ユーザーに「学校発行のGoogleアカウントで再試行」を表示"]
+  M --> C
+
+  J -- Yes --> N["SupabaseAdapter がユーザー情報を保存"]
+  N --> O["sessionコールバックで session.user.id に DBの user.id を設定"]
+  O --> P["ブラウザへセッション発行"]
+
+  %% ログイン後の遷移
+  P --> H{"プロフィール登録済み?"}
+
+  %% /register (Onboarding)
+  H -- No --> Q["フロントエンド /register (OnboardingPage)"]
+  Q --> R["getProfile() で Supabase のプロフィール確認"]
+  R --> S{"grade など登録情報あり?"}
+
+  S -- Yes --> T["router.push('/') でトップへ"]
+  S -- No --> U["登録フォーム表示"]
+
+  U --> V["ユーザーが学年・コース・通学手段・規約同意を入力"]
+  V --> W{"入力バリデーションOK? (zod + react-hook-form)"}
+
+  W -- No --> U
+  W -- Yes --> X["updateProfile() でプロフィールを保存"]
+  X --> Y["router.push('/') でトップへ"]
+
+  %% 再アクセス時
+  H -- Yes --> T
