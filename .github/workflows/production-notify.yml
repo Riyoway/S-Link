@@ -4,12 +4,15 @@ on: deployment_status
 
 env:
   LOOKBACK: 20
+  # ステータスを示すアイコン
   SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1089914717150122044.webp?size=32&animated=false"
-  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1089914757300768828.webp?size=32&animated=false" 
+  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1089914757300768828.webp?size=32&animated=false"
+  # QuickChart 短縮URL API エンドポイント
   CHART_HOST: "https://quickchart.io/chart/create" 
 
 jobs:
   notify:
+    # Production環境で成功または失敗した場合のみ実行
     if: github.event.deployment.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
     runs-on: ubuntu-latest
 
@@ -24,7 +27,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y jq python3
 
-      - name: Build stats and chart (Using QuickChart Short URL API)
+      - name: Build stats and chart (Short URL API)
         id: stats
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,7 +113,7 @@ jobs:
           values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
           colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
 
-          # QuickChart設定のJSONを構築
+          # QuickChart設定のJSONを構築 (短縮URL対応のため 'chart' キーで囲む)
           chart_cfg_json=$(jq -n \
             --argjson labels "$labels_json" \
             --argjson data "$values_json" \
@@ -133,7 +136,7 @@ jobs:
             }'
           )
           
-          # QuickChartの短縮URL APIにJSONをPOST
+          # QuickChartの短縮URL APIにJSONをPOSTし、短縮URLを取得
           chart_response=$(curl -s -X POST \
             -H "Content-Type: application/json" \
             -d "$chart_cfg_json" \
@@ -143,7 +146,7 @@ jobs:
           
           if [ -z "$chart_url" ]; then
               echo "::warning::Failed to get short chart URL. Response: $chart_response"
-              chart_url="" # URLが取得できない場合は空文字列にする (imageフィールド自体を省略するため)
+              chart_url=""
           else
               echo "Short Chart URL obtained: $chart_url"
           fi
@@ -155,9 +158,9 @@ jobs:
           echo "avg=$avg" >> $GITHUB_OUTPUT
           echo "rate=$rate" >> $GITHUB_OUTPUT
           echo "chart=$chart_url" >> $GITHUB_OUTPUT
-          echo "repo_icon_url=$REPO_ICON_URL" >> $GITHUB_OUTPUT # リポジトリアイコンの出力
+          echo "repo_icon_url=$REPO_ICON_URL" >> $GITHUB_OUTPUT
 
-      - name: Send Discord notification (with debug 🐛)
+      - name: Send Discord notification (FINAL VERSION)
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           # GitHub Actionsから取得可能な全ての関連データをENVに設定
@@ -176,13 +179,13 @@ jobs:
           AVG: ${{ steps.stats.outputs.avg }}
           RATE: ${{ steps.stats.outputs.rate }}
           CHART: ${{ steps.stats.outputs.chart }}
-          REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }} # 新しいリポジトリアイコン
+          REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }}
 
         run: |
           set -euo pipefail
           
           if [ -z "$DISCORD_WEBHOOK" ]; then
-            echo "::error::DISCORD_WEBHOOK_URL secret is empty. Please set the secret."
+            echo "::error::DISCORD_WEBHOOK_URL secret is empty."
             exit 1
           fi
 
@@ -199,12 +202,11 @@ jobs:
           fi
 
           DETAILS="[View Details]($DEPLOY_URL)"
-          
-          # 環境変数として設定されていないが、GitHub Actionsで取得可能な関連データ
           COMMIT_URL="${REPO_URL}/commit/${DEPLOY_COMMIT}"
-          
-          # JSONペイロードの生成
-          payload=$(jq -n \
+          DEPLOY_EMBED_URL="$DEPLOY_URL"
+
+          # 1. 基本ペイロードを生成 (imageフィールドを含まない)
+          BASE_PAYLOAD=$(jq -n \
             --arg title "$TITLE" \
             --arg status "$STATUS" \
             --arg repo "$REPO" \
@@ -212,7 +214,6 @@ jobs:
             --arg by "$DEPLOY_BY" \
             --arg time "$DEPLOY_TIME" \
             --arg details "$DETAILS" \
-            --arg chart "$CHART" \
             --arg icon "$ICON" \
             --argjson color "$COLOR" \
             --arg total "$TOTAL" \
@@ -220,7 +221,7 @@ jobs:
             --arg failure "$FAILURE" \
             --arg avg "$AVG" \
             --arg rate "$RATE" \
-            --arg deploy_embed_url "$DEPLOY_URL" \
+            --arg deploy_embed_url "$DEPLOY_EMBED_URL" \
             --arg commit_url "$COMMIT_URL" \
             --arg ref_type "$REF_TYPE" \
             --arg repo_icon "$REPO_ICON" \
@@ -234,7 +235,7 @@ jobs:
                   description: $status,
                   url: $deploy_embed_url, 
                   color: $color,
-                  author: { name: $repo, icon_url: $repo_icon, url: $repo_url }, # リポジトリオーナーアイコン
+                  author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
                   fields: [
                     # 第1列: 識別情報
                     { name: "Environment", value: "${{ env.ENV_NAME }}", inline: true },
@@ -250,14 +251,27 @@ jobs:
                     { name: "Commit Hash", value: ("[`" + ($commit | .[:7]) + "`]" + "(" + $commit_url + ")"), inline: true },
                     { name: "Deployment URL", value: $details, inline: true }
                   ],
-                  # chart URLが空でない場合のみ image フィールドを含める
-                  image: ($chart | length > 0) ? { url: $chart } : empty,
-                  thumbnail: { url: $repo_icon }, # サムネイルもリポジトリオーナーアイコン
+                  thumbnail: { url: $repo_icon },
                   timestamp: $time
                 }
               ]
             }')
             
+          # 2. $CHARTが存在する場合、imageフィールドを追加する (安全な方法)
+          CHART_URL="$CHART"
+          
+          if [ -n "$CHART_URL" ]; then
+            echo "Attaching chart image to payload..."
+            # embeds[0]にimageフィールドを追加
+            payload=$(echo "$BASE_PAYLOAD" | jq --arg chart_url "$CHART_URL" '
+              .embeds[0] |= . + {"image": {"url": $chart_url}}
+            ')
+          else
+            echo "Chart URL is empty, skipping image field."
+            payload="$BASE_PAYLOAD"
+          fi
+
+
           echo "--- Discord Payload ---"
           echo "$payload"
           echo "-----------------------"
@@ -266,7 +280,6 @@ jobs:
           http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
           
           echo "HTTP Status Code: $http_response"
-          echo "Response Body:"
           cat response.txt
 
           if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
