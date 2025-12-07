@@ -33,18 +33,15 @@ jobs:
         run: |
           set -euo pipefail
           
-          # 環境変数の設定 (すでにenvで設定されているが、ここではシェルのローカル変数として設定)
           LOOKBACK="${LOOKBACK}"
           REPO="${REPO}"
 
           echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
 
           # APIリクエスト (Deploymentsの取得)
-          # GitHub APIから最近のデプロイメント情報を取得
           deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
 
-          # レスポンスが配列(array)かチェックする (エラーオブジェクトではないか確認)
           json_type=$(echo "$deps_json" | jq -r type)
 
           if [ "$json_type" != "array" ]; then
@@ -82,11 +79,11 @@ jobs:
               if [ "$st_state" = "success" ]; then
                 successes=$((successes+1))
                 values+=("1")
-                colors+=("#2ecc71") # Green
+                colors+=("#2ecc71")
               else
                 failures=$((failures+1))
                 values+=("0")
-                colors+=("#e74c3c") # Red
+                colors+=("#e74c3c")
               fi
 
               # ビルド時間の計算 (秒)
@@ -111,12 +108,11 @@ jobs:
             rate="0.0"
           fi
           
-          # JSON配列を生成
           labels_json=$(printf '%s\n' "${labels[@]}" | jq -R . | jq -s .)
           values_json=$(printf '%s\n' "${values[@]}" | jq -R . | jq -s .)
           colors_json=$(printf '%s\n' "${colors[@]}" | jq -R . | jq -s .)
 
-          # QuickChart設定の生成
+          # QuickChart設定の生成 (callback内のクォートを修正済)
           chart_cfg=$(jq -n \
             --argjson labels "$labels_json" \
             --argjson data "$values_json" \
@@ -128,7 +124,7 @@ jobs:
                 legend: { display: false }, 
                 scales: { 
                   yAxes: [{ 
-                    ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value, index, values) { return value == 1 ? \'Success\' : \'Failure\' }" },
+                    ticks: { min: 0, max: 1, stepSize: 1, callback: "function(value){return value==1?\"Success\":\"Failure\"}" },
                     scaleLabel: { display: true, labelString: "Status" }
                   }],
                   xAxes: [{ scaleLabel: { display: true, labelString: "Commit SHA" } }]
@@ -174,12 +170,12 @@ jobs:
           fi
 
           if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
-            COLOR=5763719    # Green
+            COLOR=5763719
             ICON="${SUCCESS_ICON}"
             TITLE="✅ Production Deployed"
             STATUS="🟢 Success"
           else
-            COLOR=15158332   # Red
+            COLOR=15158332
             ICON="${FAILURE_ICON}"
             TITLE="❌ Deployment Failed"
             STATUS="🔴 Failed"
@@ -228,14 +224,11 @@ jobs:
               ]
             }')
             
-          # 【修正】デバッグのためのログ出力
+          # 【デバッグ】ペイロードとレスポンスをログに出力
           echo "--- Discord Payload ---"
           echo "$payload"
           echo "-----------------------"
           
-          # 【修正】curlコマンドの変更
-          # -s (サイレント) を削除し、-w (write out) でHTTPステータスを取得。
-          # -f でHTTPエラー時にcurlを失敗させる。
           echo "Sending request to Discord..."
           http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
           
