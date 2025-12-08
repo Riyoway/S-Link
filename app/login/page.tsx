@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,15 @@ import {
 export default function Login() {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   // すでにログイン済みならホームへリダイレクト
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/");
+      router.push(callbackUrl);
     }
-  }, [status, router]);
+  }, [status, router, callbackUrl]);
 
   if (status === "loading") {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
@@ -39,7 +41,7 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <Button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={() => signIn("google", { callbackUrl })}
             className="w-full py-6 text-lg flex items-center justify-center gap-3"
           >
             <Image
