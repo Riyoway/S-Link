@@ -1,0 +1,59 @@
+
+flowchart TD
+  %% トリガー
+  A["GitHub deployment_status イベント"] --> B{"environment が 'Production' か?"}
+
+  B -- "No" --> Z["ジョブをスキップ"]
+  B -- "Yes" --> C{"state が success または failure か?"}
+
+  C -- "No" --> Z
+  C -- "Yes" --> D["ジョブ notify を ubuntu-latest で開始"]
+
+  %% ステップ1: 依存関係のインストール
+  D --> E["apt-get で jq をインストール"]
+
+  %% ステップ2: 統計情報の構築 (GitHub API)
+  E --> F["ステップ: Build stats"]
+  F --> G["GitHub API で直近 LOOKBACK 件の Production デプロイを取得"]
+  G --> H{"API レスポンスは配列か?"}
+
+  H -- "No" --> H1["エラーを出力して exit 1"]
+  H -- "Yes" --> I["デプロイ件数 total を計算"]
+
+  I --> J{"total > 0 か?"}
+  J -- "No" --> J1["avg=0, rate=0.0 を設定"]
+  J -- "Yes" --> K["各デプロイについて最新ステータスを取得"]
+
+  K --> L{"status が success か?"}
+  L -- "Yes" --> L1["successes をインクリメント"]
+  L -- "No" --> L2["failures をインクリメント"]
+
+  L1 --> M["created_at から updated_at までの時間を計算"]
+  L2 --> M
+  M --> N["durations 配列に追加"]
+  N --> O{"未処理のデプロイが残っているか?"}
+  O -- "Yes" --> K
+  O -- "No" --> P["durations を合計して平均ビルド時間 avg を計算"]
+  P --> Q["成功率 rate (successes / total * 100) を計算"]
+
+  J1 --> R["total, success, failure, avg, rate, repo_icon_url を GITHUB_OUTPUT に書き出し"]
+  Q --> R
+
+  %% ステップ3: Discord 通知
+  R --> S["ステップ: Discord 通知を送信"]
+  S --> T{"DISCORD_WEBHOOK が設定されているか?"}
+  T -- "No" --> T1["エラーを出力して exit 1"]
+  T -- "Yes" --> U{"deployment_status.state が success か?"}
+
+  U -- "Yes" --> U1["COLOR=green, SUCCESS_ICON, 成功タイトルとステータスを設定"]
+  U -- "No" --> U2["COLOR=red, FAILURE_ICON, 失敗タイトルとステータスを設定"]
+
+  U1 --> V["統計とリンクを含む Discord embed ペイロードを jq で生成"]
+  U2 --> V
+
+  V --> W["curl で Discord Webhook に POST"]
+  W --> X{"HTTP ステータスが 200 または 204 か?"}
+
+  X -- "No" --> X1["エラーを出力して exit 1"]
+  X -- "Yes" --> Y["Workflow が正常終了"]
+

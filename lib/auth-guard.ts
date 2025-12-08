@@ -3,16 +3,15 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
-export default async function Home() {
+export async function requireAuth(currentPath: string) {
   const session = await getServerSession(authOptions);
 
-  // 1. 未ログインならログインページへ
+  // 1. 未ログインならログインページへ (callbackUrl付き)
   if (!session) {
-    redirect("/login");
+    redirect(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
   }
 
-  // 2. ユーザー情報の取得 (gradeがあるか確認)
-  // next-authのsessionには基本情報しかないのでDBを確認
+  // 2. ユーザー情報の取得
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!
@@ -25,11 +24,10 @@ export default async function Home() {
     .eq("email", session.user?.email)
     .single();
 
-  // 3. プロフィール未設定（gradeがない）ならオンボーディングへ
+  // 3. プロフィール未設定なら登録ページへ
   if (!userProfile?.grade) {
     redirect("/register");
   }
 
-  // 4. 設定済みならWelcome画面
-  redirect("/dashboard");
+  return { session, userProfile };
 }
