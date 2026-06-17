@@ -1,0 +1,202 @@
+name: "S-Link Production - Notify"
+
+on: deployment_status
+
+env:
+  LOOKBACK: 20
+  SUCCESS_ICON: "https://cdn.discordapp.com/emojis/1089914717150122044.webp?size=32&animated=false"
+  FAILURE_ICON: "https://cdn.discordapp.com/emojis/1089914757300768828.webp?size=32&animated=false"
+
+jobs:
+  notify:
+    if: github.event.deployment.environment == 'Production' && (github.event.deployment_status.state == 'success' || github.event.deployment_status.state == 'failure')
+    runs-on: ubuntu-latest
+
+    permissions:
+      deployments: read
+      contents: read
+      statuses: read
+
+    steps:
+      - name: Install dependencies (jq)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Build stats
+        id: stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          LOOKBACK="${LOOKBACK}"
+          REPO="${REPO}"
+
+          # リポジトリオーナーのアイコンURLを取得
+          REPO_ICON_URL="${{ github.event.repository.owner.avatar_url }}"
+
+          echo "Fetching deployments for repo: $REPO (Lookback: $LOOKBACK)"
+
+          deps_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${REPO}/deployments?environment=Production&per_page=${LOOKBACK}")
+
+          json_type=$(echo "$deps_json" | jq -r type)
+          if [ "$json_type" != "array" ]; then
+            echo "::error::GitHub API returned an error object instead of an array."
+            echo "Response content: $deps_json"
+            exit 1
+          fi
+
+          total=$(echo "$deps_json" | jq 'length')
+          successes=0
+          failures=0
+          durations=()
+
+          if [ "$total" -gt 0 ]; then
+            for i in $(seq 0 $(($total - 1))); do
+              dep_id=$(echo "$deps_json" | jq -r ".[$i].id")
+              dep_created=$(echo "$deps_json" | jq -r ".[$i].created_at")
+
+              st_json=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${REPO}/deployments/${dep_id}/statuses?per_page=1")
+
+              st_state=$(echo "$st_json" | jq -r '.[0].state // "unknown"')
+              st_updated=$(echo "$st_json" | jq -r '.[0].updated_at // empty')
+
+              if [ "$st_state" = "success" ]; then
+                successes=$((successes+1))
+              else
+                failures=$((failures+1))
+              fi
+
+              if [ -n "$st_updated" ] && [ "$st_updated" != "null" ]; then
+                created_s=$(date -d "$dep_created" +%s || echo 0)
+                updated_s=$(date -d "$st_updated" +%s || echo 0)
+                durations+=($((updated_s - created_s)))
+              else
+                durations+=(0)
+              fi
+            done
+          fi
+
+          if [ "$total" -gt 0 ]; then
+            sum=0
+            for d in "${durations[@]}"; do sum=$((sum + d)); done
+            avg=$((sum / total))
+            rate=$(awk "BEGIN { printf \"%.1f\", (${successes}/${total}) * 100 }")
+          else
+            avg=0
+            rate="0.0"
+          fi
+
+          echo "total=$total" >> $GITHUB_OUTPUT
+          echo "success=$successes" >> $GITHUB_OUTPUT
+          echo "failure=$failures" >> $GITHUB_OUTPUT
+          echo "avg=$avg" >> $GITHUB_OUTPUT
+          echo "rate=$rate" >> $GITHUB_OUTPUT
+          echo "repo_icon_url=$REPO_ICON_URL" >> $GITHUB_OUTPUT
+
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DEPLOY_URL: ${{ github.event.deployment_status.target_url }}
+          DEPLOY_COMMIT: ${{ github.event.deployment.sha }}
+          DEPLOY_BY: ${{ github.event.deployment.creator.login }}
+          DEPLOY_TIME: ${{ github.event.deployment_status.updated_at }}
+          ENV_NAME: ${{ github.event.deployment.environment }}
+          REF_TYPE: ${{ github.event.deployment.ref }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          REPO: ${{ github.repository }}
+          TOTAL: ${{ steps.stats.outputs.total }}
+          SUCCESS: ${{ steps.stats.outputs.success }}
+          FAILURE: ${{ steps.stats.outputs.failure }}
+          AVG: ${{ steps.stats.outputs.avg }}
+          RATE: ${{ steps.stats.outputs.rate }}
+          REPO_ICON: ${{ steps.stats.outputs.repo_icon_url }}
+          LOOKBACK: ${{ env.LOOKBACK }}
+
+        run: |
+          set -euo pipefail
+
+          if [ -z "$DISCORD_WEBHOOK" ]; then
+            echo "::error::DISCORD_WEBHOOK_URL secret is empty."
+            exit 1
+          fi
+
+          if [ "${{ github.event.deployment_status.state }}" = "success" ]; then
+            COLOR=5763719
+            ICON="${SUCCESS_ICON}"
+            TITLE="**${ENV_NAME} Deployment Success**"
+            STATUS="### <a:online:1441732215259136141> Success"
+          else
+            COLOR=15158332
+            ICON="${FAILURE_ICON}"
+            TITLE=":fire: **${ENV_NAME} Deployment Failed**"
+            STATUS="### <a:offline:1441732212771917824> Failed"
+          fi
+
+          DETAILS="[View Details]($DEPLOY_URL)"
+          COMMIT_URL="${REPO_URL}/commit/${DEPLOY_COMMIT}"
+          SHORT_COMMIT=$(echo "$DEPLOY_COMMIT" | cut -c1-7)
+          DEPLOY_URL_SAFE="$DEPLOY_URL"
+
+          payload=$(jq -n \
+            --arg title "$TITLE" \
+            --arg status "$STATUS" \
+            --arg repo "$REPO" \
+            --arg short_commit "$SHORT_COMMIT" \
+            --arg commit "$DEPLOY_COMMIT" \
+            --arg by "$DEPLOY_BY" \
+            --arg time "$DEPLOY_TIME" \
+            --arg details "$DETAILS" \
+            --arg icon "$ICON" \
+            --argjson color "$COLOR" \
+            --arg total "$TOTAL" \
+            --arg success "$SUCCESS" \
+            --arg failure "$FAILURE" \
+            --arg avg "$AVG" \
+            --arg rate "$RATE" \
+            --arg commit_url "$COMMIT_URL" \
+            --arg ref_type "$REF_TYPE" \
+            --arg repo_icon "$REPO_ICON" \
+            --arg repo_url "$REPO_URL" \
+            --arg deploy_url "$DEPLOY_URL_SAFE" \
+            --arg lookback "$LOOKBACK" \
+            --arg env_name "$ENV_NAME" \
+            '{
+              embeds: [
+                {
+                  title: $title,
+                  description: "\($status)\nThe server has been successfully updated and deployed!",
+                  url: "https://s-link-ktc.vercel.app/",
+                  color: $color,
+                  author: { name: $repo, icon_url: $repo_icon, url: $repo_url },
+                  fields: [
+                    { name: "Environment", value: "> \($env_name)", inline: true },
+                    { name: "Deployer", value: "> \($by)", inline: true },
+                    { name: "Ref/Branch", value: "> \($ref_type)", inline: true },
+                    { name: "Success Rate", value: "> \($rate)% (\($success)/\($total))", inline: true },
+                    { name: "Avg Build Time (s)", value: "> \($avg)", inline: true },
+                    { name: "Duration Lookback", value: "> \($lookback) deployments", inline: true },
+                    { name: "Commit Hash", value: "> [`\($short_commit)`](\($commit_url))", inline: true },
+                    { name: "Deployment URL", value: "> \($details)", inline: true }
+                  ],
+                  timestamp: $time
+                }
+              ]
+            }')
+
+          echo "--- Discord Payload ---"
+          echo "$payload"
+          echo "-----------------------"
+
+          http_response=$(curl -o response.txt -w "%{http_code}" -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK")
+          echo "HTTP Status Code: $http_response"
+          cat response.txt
+
+          if [ "$http_response" -ne 204 ] && [ "$http_response" -ne 200 ]; then
+            echo "::error::Discord returned a non-success HTTP code ($http_response). See Response Body above for details."
+            exit 1
+          fi
