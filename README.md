@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src=".github/icon.png" width="128" alt="S-Link Icon" />
+
 # S-Link
 
 **学校内PBLプロジェクト — 学生向け学校生活支援Webアプリ**
